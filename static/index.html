@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fake News Detector</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+</head>
+<body>
+    <!-- Main Container -->
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <h1>🔍 Fake News Detector</h1>
+            </div>
+            
+            <nav class="nav-menu">
+                <button class="nav-btn active" onclick="switchTab('analyze')">
+                    <span class="nav-icon">📊</span>
+                    <span>Analyze</span>
+                </button>
+                <button class="nav-btn" onclick="switchTab('database')">
+                    <span class="nav-icon">💾</span>
+                    <span>Database</span>
+                </button>
+            </nav>
+            
+            <div class="sidebar-stats">
+                <h3>Statistics</h3>
+                <div class="stat-row">
+                    <span>Total Articles:</span>
+                    <span id="totalArticles" class="stat-value">0</span>
+                </div>
+                <div class="stat-row">
+                    <span>High Credibility:</span>
+                    <span id="highCredibility" class="stat-value stat-high">0</span>
+                </div>
+                <div class="stat-row">
+                    <span>Low Credibility:</span>
+                    <span id="lowCredibility" class="stat-value stat-low">0</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Analyze Tab -->
+            <div id="analyzeTab" class="tab-content active">
+                <!-- Project Name Header -->
+                <div class="section-header">
+                    <h2>Fake News Detection System</h2>
+                </div>
+
+                <!-- Input Section -->
+                <section class="input-section">
+                    <h3>Analyze News Article</h3>
+                    <div class="input-wrapper">
+                        <input 
+                            type="url" 
+                            id="articleUrl" 
+                            placeholder="Enter article URL..."
+                            class="url-input"
+                        />
+                        <button id="analyzeBtn" class="btn-analyze" onclick="analyzeArticle()">
+                            Analyze
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Loading Indicator -->
+                <div id="loadingIndicator" class="loading-section" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Analyzing article...</p>
+                </div>
+
+                <!-- Error Message -->
+                <div id="errorMessage" class="error-section" style="display: none;"></div>
+
+                <!-- Results Container -->
+                <div id="resultsContainer" style="display: none;">
+                    <!-- Article Information -->
+                    <section class="info-section">
+                        <h3>Article Information</h3>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <label>Title:</label>
+                                <span id="infoTitle">-</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Source:</label>
+                                <span id="infoSource">-</span>
+                            </div>
+                            <div class="info-item">
+                                <label>URL:</label>
+                                <a id="infoUrl" href="#" target="_blank">-</a>
+                            </div>
+                            <div class="info-item">
+                                <label>Published:</label>
+                                <span id="infoPublished">-</span>
+                            </div>
+                            <div class="info-item full-width">
+                                <label>Content Preview:</label>
+                                <p id="infoContent" class="content-preview">-</p>
+                            </div>
+                            <div class="info-item">
+                                <label>Category:</label>
+                                <span id="infoCategory" class="category-badge">-</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Overall Score -->
+                    <section class="score-section">
+                        <h3>Overall Credibility Score</h3>
+                        <div class="overall-score-display">
+                            <div class="score-circle" id="overallScoreCircle">
+                                <span class="score-number" id="overallScoreNumber">0</span>
+                                <span class="score-label">%</span>
+                            </div>
+                            <div class="score-verdict" id="scoreVerdict">-</div>
+                        </div>
+                    </section>
+
+                    <!-- Three Main Scores -->
+                    <section class="subscores-section">
+                        <div class="score-card">
+                            <div class="score-card-header">Language Quality</div>
+                            <div class="score-card-value" id="languageScore">0%</div>
+                            <div class="score-card-desc">Grammar, style, complexity</div>
+                        </div>
+                        <div class="score-card">
+                            <div class="score-card-header">Source Credibility</div>
+                            <div class="score-card-value" id="credibilityScore">0%</div>
+                            <div class="score-card-desc">Domain reputation, transparency</div>
+                        </div>
+                        <div class="score-card">
+                            <div class="score-card-header">Cross-Check Score</div>
+                            <div class="score-card-value" id="crosscheckScore">0%</div>
+                            <div class="score-card-desc">Similarity to verified articles</div>
+                        </div>
+                    </section>
+
+                    <!-- Charts Grid (6 Charts) -->
+                    <section class="charts-section">
+                        <h3>Detailed Analysis</h3>
+                        
+                        <!-- Row 1: Charts 1 & 2 -->
+                        <div class="charts-row">
+                            <div class="chart-container">
+                                <h4>Chart 1: Language Quality Metrics</h4>
+                                <div id="chart1" class="chart-plot"></div>
+                            </div>
+                            <div class="chart-container">
+                                <h4>Chart 2: Sentiment Distribution</h4>
+                                <div id="chart2" class="chart-plot"></div>
+                            </div>
+                        </div>
+
+                        <!-- Row 2: Chart 3 -->
+                        <div class="charts-row">
+                            <div class="chart-container chart-full">
+                                <h4>Chart 3: Credibility Radar</h4>
+                                <div id="chart3" class="chart-plot"></div>
+
+                                <!-- Detailed Metric Cards -->
+                                <div id="metricCardsContainer" class="metric-cards-container" style="display: none;">
+                                    <h5 class="metric-cards-title">Detailed Score Breakdown</h5>
+                                    <div class="metric-cards-grid">
+                                        <div class="metric-card" id="domainAgeCard">
+                                            <div class="metric-card-icon">📅</div>
+                                            <div class="metric-card-header">
+                                                <h6>Domain Age</h6>
+                                                <span class="metric-score" id="domainAgeScore">0/100</span>
+                                            </div>
+                                            <div class="metric-status" id="domainAgeStatus">-</div>
+                                            <div class="metric-progress-bar">
+                                                <div class="metric-progress-fill" id="domainAgeProgress"></div>
+                                            </div>
+                                            <p class="metric-description" id="domainAgeDesc">-</p>
+                                        </div>
+
+                                        <div class="metric-card" id="urlStructureCard">
+                                            <div class="metric-card-icon">🔗</div>
+                                            <div class="metric-card-header">
+                                                <h6>URL Structure</h6>
+                                                <span class="metric-score" id="urlStructureScore">0/100</span>
+                                            </div>
+                                            <div class="metric-status" id="urlStructureStatus">-</div>
+                                            <div class="metric-progress-bar">
+                                                <div class="metric-progress-fill" id="urlStructureProgress"></div>
+                                            </div>
+                                            <p class="metric-description" id="urlStructureDesc">-</p>
+                                        </div>
+
+                                        <div class="metric-card" id="siteStructureCard">
+                                            <div class="metric-card-icon">🏗️</div>
+                                            <div class="metric-card-header">
+                                                <h6>Site Structure</h6>
+                                                <span class="metric-score" id="siteStructureScore">0/100</span>
+                                            </div>
+                                            <div class="metric-status" id="siteStructureStatus">-</div>
+                                            <div class="metric-progress-bar">
+                                                <div class="metric-progress-fill" id="siteStructureProgress"></div>
+                                            </div>
+                                            <p class="metric-description" id="siteStructureDesc">-</p>
+                                        </div>
+
+                                        <div class="metric-card" id="contentFormatCard">
+                                            <div class="metric-card-icon">📝</div>
+                                            <div class="metric-card-header">
+                                                <h6>Content Format</h6>
+                                                <span class="metric-score" id="contentFormatScore">0/100</span>
+                                            </div>
+                                            <div class="metric-status" id="contentFormatStatus">-</div>
+                                            <div class="metric-progress-bar">
+                                                <div class="metric-progress-fill" id="contentFormatProgress"></div>
+                                            </div>
+                                            <p class="metric-description" id="contentFormatDesc">-</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Row 3: Chart 4 -->
+                        <div class="charts-row">
+                            <div class="chart-container chart-full">
+                                <h4>Chart 4: Cross-Check Analysis</h4>
+                                <div id="chart4" class="chart-plot"></div>
+                            </div>
+                        </div>
+
+                        <!-- Row 4: Charts 5 & 6 -->
+                        <div class="charts-row">
+                            <div class="chart-container">
+                                <h4>Chart 5: Similarity Map</h4>
+                                <div id="chart5" class="chart-plot"></div>
+                            </div>
+                            <div class="chart-container">
+                                <h4>Chart 6: Related Articles from Reputable Sources</h4>
+                                <div id="chart6" class="chart-plot chart-placeholder">
+                                    <div class="placeholder-content">
+                                        <div class="placeholder-icon">📰</div>
+                                        <p>Related articles will appear here</p>
+                                        <small>After analyzing an article</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- Database Tab -->
+            <div id="databaseTab" class="tab-content">
+                <div class="section-header">
+                    <h2>Article Database</h2>
+                </div>
+
+                <div class="database-controls">
+                    <div class="control-group">
+                        <label>Min Score:</label>
+                        <input type="range" id="minScoreFilter" min="0" max="100" value="0" step="5">
+                        <span id="minScoreValue">0%</span>
+                    </div>
+                    <div class="control-group">
+                        <label>Sort By:</label>
+                        <select id="sortBy">
+                            <option value="analyzed_at">Date</option>
+                            <option value="overall_score">Score</option>
+                            <option value="credibility_score">Credibility</option>
+                        </select>
+                    </div>
+                    <button class="btn-secondary" onclick="exportDatabase()">📥 Export CSV</button>
+                    <button class="btn-danger" onclick="clearDatabase()">🗑️ Clear Database</button>
+                </div>
+
+                <div id="databaseTable" class="table-container"></div>
+                <div id="noDatabaseData" class="empty-state">
+                    <p>No articles in database. Analyze some articles to get started!</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/tabs.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/article-display.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/scores-display.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/charts-display.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
