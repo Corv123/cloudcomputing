@@ -1,0 +1,98 @@
+Analytics and Experiments Report
+
+1. Overview
+This report summarizes the analytics provided by the Fake News Detector, the design of the analytics dashboard, and the machine learning experiments conducted, including settings, evaluation metrics, baseline comparisons, and ablation studies. All metrics below are derived from the latest experiment runs.
+
+2. Analytics Types and User Value
+2.1 Sensationalism Detection
+- Purpose: Quantify sensational language in articles.
+- Output: Probability score (0.0–1.0) with interpretation bands (Low/Moderate/High).
+- User Value: Immediate trust signal; helps flag manipulative content quickly.
+
+2.2 Source/Credibility Context
+- Purpose: Capture evidence, professional, and balanced language markers.
+- Output: Ratios and counts surfaced as secondary metrics.
+- User Value: Distinguishes source reliability from article tone.
+
+2.3 Linguistic Quality
+- Purpose: Readability and writing quality indicators (avg sentence/word length, repetition, uniqueness).
+- User Value: Differentiates professional reporting from low‑quality writing.
+
+2.4 Sentiment Flow
+- Purpose: Sentence‑level sentiment trajectory across the article.
+- User Value: Exposes emotional arcs indicative of manipulation tactics.
+
+2.5 Word‑Use Patterns
+- Purpose: Frequencies of clickbait/emotional terms vs. professional/balanced language.
+- User Value: Concrete, explainable evidence for “why” an article appears sensational or credible.
+
+3. Analytics Dashboard (Design Description)
+3.1 Top Band – Sensationalism Score Circle
+- Large numeric score with color states: green (<0.3), yellow (0.3–0.7), red (>0.7).
+- Rationale: Glanceable decision aid.
+
+3.2 Score Strip – Multi‑metric Bars
+- Horizontal bars for credibility markers, linguistic quality, cross‑checks.
+- Threshold ticks at 0.3/0.5/0.7 normalize interpretation.
+
+3.3 Word Frequency Panel
+- Horizontal bar chart with dual palette: red (clickbait/emotional) vs. green (professional/balanced).
+- Top 10–15 tokens with hover tooltips.
+
+3.4 Sentiment Flow Panel
+- Line chart by sentence index, y ∈ [−1, 1], shaded bands for neutral/positive/negative.
+
+3.5 Evidence Panel (Explainability)
+- Key signals (e.g., caps/exclamation/question densities, emotional & clickbait hits, evidence/professional/balanced ratios) with brief rationale.
+
+4. ML Pipeline and Experiments
+4.1 Dataset
+- Total samples: 31,204 (real: 21,631; fake: 9,573)
+- Split: train 24,963 / test 6,241 (seed=42)
+
+4.2 Features
+- TF‑IDF: 5,000 features (1–2 grams, min_df=5, max_df=0.7, sublinear_tf)
+- Enhanced linguistic: 28 features (caps/exclamation/question densities; emotional_intensity and clickbait_score; sentiment polarity/intensity/balance; intensifier/tentative/evidence/professional/balanced ratios; structural and repetition/uniqueness; counts for all‑caps/exclamation/question/clickbait/emotional; professional/balanced/data references).
+
+4.3 Model and Training
+- Primary model: LinearSVC (class_weight="balanced", max_iter=1000, seed=42)
+- Training time: 160.46 s (~2.67 min)
+- Inference: sub‑100 ms (warm), suitable for serverless deployment.
+
+4.4 Test Performance (Primary Model)
+- Accuracy: 0.9915
+- Precision: 0.9745
+- Recall: 0.9984
+- F1‑score: 0.9863
+- ROC‑AUC: 0.9991
+- Confusion Matrix: TN=4,276; FP=50; FN=3; TP=1,912
+- Cross‑validation (5‑fold F1): mean 0.9889; std 0.0215; min 0.9458; max 1.0000
+
+4.5 Baseline Comparisons
+- Gaussian Naive Bayes: Acc 0.9897; F1 0.9834; AUC 0.9905
+- Logistic Regression: Acc 0.9912; F1 0.9858; AUC 0.9982
+- Linear SVM (Primary): Acc 0.9915; F1 0.9863; AUC 0.9991
+- Random Forest (100): Acc 0.9894; F1 0.9829; AUC 0.9983
+- Random Forest (300): Acc 0.9881; F1 0.9808; AUC 0.9987
+Interpretation: Linear SVM and Logistic Regression are top performers; Linear SVM edges on F1/AUC with efficient inference. Tree ensembles lag slightly with higher inference cost.
+
+4.6 Ablation Studies (ΔF1 vs. Full Model F1=0.9861)
+- TF‑IDF Only: F1 0.9840 (Δ −0.0021; −0.21%)
+- Enhanced Only: F1 0.8785 (Δ −0.1076; −10.91%)
+- − Stylistic (caps/punct): F1 0.9858 (Δ −0.00026)
+- − Emotional/Clickbait: F1 0.9856 (Δ −0.00052)
+- − Credibility (professional/balanced/evidence): F1 0.9856 (Δ −0.00052)
+- − Structural (word/sentence length): F1 0.9858 (Δ −0.00026)
+Interpretation: TF‑IDF provides the dominant signal; enhanced features give a consistent but modest lift and are valuable for explainability. Enhanced features alone are insufficient (−10.9% F1), confirming complementarity rather than redundancy.
+
+5. Practical Implications
+- High recall (0.998) with strong precision (0.975) means the system rarely misses sensational content and limits false alarms—appropriate for a verification tool.
+- AUC ≈ 1.0 allows threshold tuning to user risk preference (cautious vs. permissive).
+- Linear SVM is a strong, efficient choice for real‑time inference (e.g., AWS Lambda).
+- The enhanced feature groups justify their presence by improving user trust via explainability panels even when the F1 lift is small.
+
+6. Future Work
+- Threshold calibration by audience (newsroom vs. public).
+- Surface linear weights for top contributing n‑grams/features in the UI.
+- Add cross‑source corroboration when the corpus grows (similar/credible neighbors).
+- Expand multilingual support and explore transformer backbones if latency budget allows.

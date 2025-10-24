@@ -1,0 +1,170 @@
+[
+  {
+    "experiment_name": "Full Model",
+    "use_tfidf": true,
+    "feature_mask": {
+      "stylistic": true,
+      "emotional": true,
+      "credibility": true,
+      "structural": true
+    },
+    "num_features": 5012,
+    "accuracy": 0.9913475404582599,
+    "precision": 0.9740193581253184,
+    "recall": 0.9984334203655353,
+    "f1_score": 0.9860752965446106,
+    "roc_auc": 0.9991745218962639,
+    "confusion_matrix": {
+      "tn": 4275,
+      "fp": 51,
+      "fn": 3,
+      "tp": 1912
+    },
+    "delta_f1": 0.0,
+    "delta_f1_pct": 0.0
+  },
+  {
+    "experiment_name": "TF-IDF Only",
+    "use_tfidf": true,
+    "feature_mask": {
+      "stylistic": false,
+      "emotional": false,
+      "credibility": false,
+      "structural": false
+    },
+    "num_features": 5000,
+    "accuracy": 0.9900656946002243,
+    "precision": 0.9739130434782609,
+    "recall": 0.9942558746736292,
+    "f1_score": 0.9839793281653747,
+    "roc_auc": 0.9989619508732794,
+    "confusion_matrix": {
+      "tn": 4275,
+      "fp": 51,
+      "fn": 11,
+      "tp": 1904
+    },
+    "delta_f1": -0.0020959683792358685,
+    "delta_f1_pct": -0.21255662590681743
+  },
+  {
+    "experiment_name": "Enhanced Features Only",
+    "use_tfidf": false,
+    "feature_mask": {
+      "stylistic": true,
+      "emotional": true,
+      "credibility": true,
+      "structural": true
+    },
+    "num_features": 12,
+    "accuracy": 0.9237301714468835,
+    "precision": 0.8592111832251622,
+    "recall": 0.8986945169712793,
+    "f1_score": 0.8785094435936702,
+    "roc_auc": 0.9681800733677841,
+    "confusion_matrix": {
+      "tn": 4044,
+      "fp": 282,
+      "fn": 194,
+      "tp": 1721
+    },
+    "delta_f1": -0.10756585295094034,
+    "delta_f1_pct": -10.908482681583335
+  },
+  {
+    "experiment_name": "- Stylistic (caps, punctuation)",
+    "use_tfidf": true,
+    "feature_mask": {
+      "stylistic": false,
+      "emotional": true,
+      "credibility": true,
+      "structural": true
+    },
+    "num_features": 5009,
+    "accuracy": 0.9911873097260054,
+    "precision": 0.9740061162079511,
+    "recall": 0.997911227154047,
+    "f1_score": 0.9858137735362393,
+    "roc_auc": 0.9991281691007919,
+    "confusion_matrix": {
+      "tn": 4275,
+      "fp": 51,
+      "fn": 4,
+      "tp": 1911
+    },
+    "delta_f1": -0.0002615230083712339,
+    "delta_f1_pct": -0.026521606340576494
+  },
+  {
+    "experiment_name": "- Emotional/Clickbait",
+    "use_tfidf": true,
+    "feature_mask": {
+      "stylistic": true,
+      "emotional": false,
+      "credibility": true,
+      "structural": true
+    },
+    "num_features": 5008,
+    "accuracy": 0.991027078993751,
+    "precision": 0.9735099337748344,
+    "recall": 0.997911227154047,
+    "f1_score": 0.9855595667870036,
+    "roc_auc": 0.9991240649470262,
+    "confusion_matrix": {
+      "tn": 4274,
+      "fp": 52,
+      "fn": 4,
+      "tp": 1911
+    },
+    "delta_f1": -0.000515729757606942,
+    "delta_f1_pct": -0.05230125523011822
+  },
+  {
+    "experiment_name": "- Credibility (quotes, entities)",
+    "use_tfidf": true,
+    "feature_mask": {
+      "stylistic": true,
+      "emotional": true,
+      "credibility": false,
+      "structural": true
+    },
+    "num_features": 5009,
+    "accuracy": 0.991027078993751,
+    "precision": 0.9739928607853137,
+    "recall": 0.9973890339425587,
+    "f1_score": 0.9855521155830753,
+    "roc_auc": 0.9991280483903872,
+    "confusion_matrix": {
+      "tn": 4275,
+      "fp": 51,
+      "fn": 5,
+      "tp": 1910
+    },
+    "delta_f1": -0.0005231809615352523,
+    "delta_f1_pct": -0.053056897720546774
+  },
+  {
+    "experiment_name": "- Structural (word/sent length)",
+    "use_tfidf": true,
+    "feature_mask": {
+      "stylistic": true,
+      "emotional": true,
+      "credibility": true,
+      "structural": false
+    },
+    "num_features": 5010,
+    "accuracy": 0.9911873097260054,
+    "precision": 0.9740061162079511,
+    "recall": 0.997911227154047,
+    "f1_score": 0.9858137735362393,
+    "roc_auc": 0.9991789881812443,
+    "confusion_matrix": {
+      "tn": 4275,
+      "fp": 51,
+      "fn": 4,
+      "tp": 1911
+    },
+    "delta_f1": -0.0002615230083712339,
+    "delta_f1_pct": -0.026521606340576494
+  }
+]

@@ -1,0 +1,53 @@
+{
+  "experiment_info": {
+    "timestamp": "20251015_174703",
+    "date": "2025-10-15 18:19:56",
+    "random_seed": 42
+  },
+  "dataset_info": {
+    "total_samples": 31204,
+    "real_samples": 21631,
+    "fake_samples": 9573,
+    "train_samples": 24963,
+    "test_samples": 6241
+  },
+  "feature_info": {
+    "tfidf_features": 5000,
+    "enhanced_features": 28,
+    "total_features": 5028
+  },
+  "training_info": {
+    "model_type": "LinearSVC",
+    "training_time_seconds": 160.45622301101685,
+    "training_time_minutes": 2.6742703835169475
+  },
+  "test_performance": {
+    "accuracy": 0.9915077711905144,
+    "precision": 0.9745158002038736,
+    "recall": 0.9984334203655353,
+    "f1_score": 0.9863296363167398,
+    "roc_auc": 0.9991164601915191,
+    "confusion_matrix": {
+      "true_negative": 4276,
+      "false_positive": 50,
+      "false_negative": 3,
+      "true_positive": 1912
+    }
+  },
+  "train_performance": {
+    "accuracy": 0.9937507511116452
+  },
+  "cross_validation": {
+    "cv_scores": [
+      0.9458250497017893,
+      1.0,
+      0.9997388352050144,
+      1.0,
+      0.9989539748953975
+    ],
+    "cv_mean": 0.9889035719604402,
+    "cv_std": 0.02154267411069276,
+    "cv_min": 0.9458250497017893,
+    "cv_max": 1.0
+  }
+}

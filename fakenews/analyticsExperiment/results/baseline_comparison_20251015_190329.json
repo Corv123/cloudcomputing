@@ -1,0 +1,72 @@
+[
+  {
+    "model_name": "Gaussian Naive Bayes",
+    "accuracy": 0.9897452331357154,
+    "precision": 0.975346687211094,
+    "recall": 0.991644908616188,
+    "f1_score": 0.9834282755049197,
+    "roc_auc": 0.9905318983280402,
+    "confusion_matrix": {
+      "true_negative": 4278,
+      "false_positive": 48,
+      "false_negative": 16,
+      "true_positive": 1899
+    }
+  },
+  {
+    "model_name": "Logistic Regression",
+    "accuracy": 0.9911873097260054,
+    "precision": 0.9759467758444217,
+    "recall": 0.995822454308094,
+    "f1_score": 0.9857844404238821,
+    "roc_auc": 0.9981606752057207,
+    "confusion_matrix": {
+      "true_negative": 4279,
+      "false_positive": 47,
+      "false_negative": 8,
+      "true_positive": 1907
+    }
+  },
+  {
+    "model_name": "Linear SVM (Primary)",
+    "accuracy": 0.9915077711905144,
+    "precision": 0.9745158002038736,
+    "recall": 0.9984334203655353,
+    "f1_score": 0.9863296363167398,
+    "roc_auc": 0.9991164601915191,
+    "confusion_matrix": {
+      "true_negative": 4276,
+      "false_positive": 50,
+      "false_negative": 3,
+      "true_positive": 1912
+    }
+  },
+  {
+    "model_name": "Random Forest (100)",
+    "accuracy": 0.9894247716712066,
+    "precision": 0.9733742959549411,
+    "recall": 0.9926892950391645,
+    "f1_score": 0.9829369183040331,
+    "roc_auc": 0.9983474142020621,
+    "confusion_matrix": {
+      "true_negative": 4274,
+      "false_positive": 52,
+      "false_negative": 14,
+      "true_positive": 1901
+    }
+  },
+  {
+    "model_name": "Random Forest (300)",
+    "accuracy": 0.988142925813171,
+    "precision": 0.9732647814910026,
+    "recall": 0.9885117493472585,
+    "f1_score": 0.9808290155440414,
+    "roc_auc": 0.9987225217852104,
+    "confusion_matrix": {
+      "true_negative": 4274,
+      "false_positive": 52,
+      "false_negative": 22,
+      "true_positive": 1893
+    }
+  }
+]
