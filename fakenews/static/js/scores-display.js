@@ -4,15 +4,15 @@
 function displayScores(article) {
     console.log('🎯 DisplayScores called with article:', article);
     
-    // Calculate individual scores
-    const languageScore = Math.round(article.language_score * 100);
-    const credibilityScore = Math.round(article.credibility_score * 100);
-    const crosscheckScore = Math.round(article.cross_check_score * 100);
-    const sensationalismScore = Math.round(article.sensationalism_bias_likelihood * 100);
+    // Calculate individual scores with NaN protection
+    const languageScore = Math.round((article.language_score || 0) * 100);
+    const credibilityScore = Math.round((article.credibility_score || 0) * 100);
+    const crosscheckScore = Math.round((article.cross_check_score || 0) * 100);
+    const sensationalismScore = Math.round((article.sensationalism_bias_likelihood || 0.5) * 100);
     
-    // Use backend's calculated overall score (weighted average)
+    // Use backend's calculated overall score (weighted average) with NaN protection
     console.log('🔍 Raw overall_score from backend:', article.overall_score, typeof article.overall_score);
-    const overallScore = Math.round(article.overall_score * 100);
+    const overallScore = Math.round((article.overall_score || 0.5) * 100);
     
     console.log('📊 Scores calculated:', {
         language: languageScore,

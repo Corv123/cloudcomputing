@@ -316,9 +316,13 @@ def analyze_article():
         # Check if already in database
         existing = db.get_article_by_url(url)
         if existing:
-            # Re-analyze to get fresh chart data
-            print("🔄 Article found in cache, re-analyzing for fresh chart data...")
-            # Continue with analysis to get fresh chart data
+            # Use cached analysis with all chart data
+            print("📋 Article found in cache, using cached analysis...")
+            return {
+                'success': True,
+                'article': existing,
+                'message': 'Analysis completed using cached data'
+            }
         
         # Extract article
         article_data = extractor.extract(url)

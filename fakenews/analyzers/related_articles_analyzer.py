@@ -228,49 +228,61 @@ class RelatedArticlesAnalyzer:
 
                     for entry in feed.entries[:40]:
                         try:
+                            # Use the actual article link from RSS feed
                             link = entry.link
+                            print(f"      Processing entry: {entry.title[:50]}...")
+                            print(f"      Original link: {link}")
 
-                            # NEW: Extract real URL from Google News redirect
-                            real_url = None
-
-                            # Method 1: Check if it's a Google redirect
+                            # For Google News RSS, we need to follow the redirect to get the real article URL
                             if 'news.google.com' in link:
                                 google_redirects += 1
-
-                                # Try to get real URL from entry.source
-                                if hasattr(entry, 'source') and hasattr(entry.source, 'href'):
-                                    real_url = entry.source.href
-
-                                # Method 2: Try to extract from link tags
-                                elif hasattr(entry, 'links'):
-                                    for entry_link in entry.links:
-                                        if entry_link.get('href') and 'news.google.com' not in entry_link.get('href', ''):
-                                            real_url = entry_link['href']
-                                            break
-
-                                # Method 3: Follow the redirect (slower but works)
-                                if not real_url:
-                                    try:
-                                        redirect_response = requests.head(link, allow_redirects=True, timeout=5)
-                                        if redirect_response.url and 'news.google.com' not in redirect_response.url:
-                                            real_url = redirect_response.url
-                                    except:
-                                        pass
-
-                                # If we still don't have a real URL, skip
-                                if not real_url:
-                                    no_source_url += 1
-                                    continue
-
-                                # Use the real URL
-                                link = real_url
+                                print(f"      Following Google News redirect...")
+                                
+                                try:
+                                    # Follow the redirect to get the real article URL
+                                    # Use GET instead of HEAD for better redirect following
+                                    redirect_response = requests.get(link, allow_redirects=True, timeout=8, stream=True)
+                                    if redirect_response.url and 'news.google.com' not in redirect_response.url:
+                                        real_url = redirect_response.url
+                                        print(f"      ✅ Found real URL: {real_url}")
+                                        link = real_url
+                                    else:
+                                        print(f"      ❌ Redirect failed or still Google News")
+                                        # WORKAROUND: Use the Google News link as-is for now
+                                        # This allows the system to work even if redirects fail
+                                        print(f"      🔄 Using Google News link as fallback: {link}")
+                                        # Don't continue - process the Google News link
+                                except Exception as e:
+                                    print(f"      ❌ Redirect error: {e}")
+                                    # WORKAROUND: Use the Google News link as-is for now
+                                    print(f"      🔄 Using Google News link as fallback: {link}")
+                                    # Don't continue - process the Google News link
 
                             # Now process with real URL
                             # Validate URL points to an article, not homepage
-                            if not self._is_valid_article_url(link):
+                            print(f"      Validating URL: {link}")
+                            
+                            # Special case: Accept Google News links as valid articles
+                            if 'news.google.com' in link:
+                                print(f"      ✅ Google News link accepted: {link}")
+                            elif not self._is_valid_article_url(link):
+                                print(f"      ❌ URL not valid article: {link}")
                                 continue
+                            else:
+                                print(f"      ✅ URL is valid article: {link}")
 
-                            domain = self._extract_domain(link)
+                            # Extract domain for Google News links
+                            if 'news.google.com' in link:
+                                # For Google News links, extract the source from the entry
+                                if hasattr(entry, 'source') and hasattr(entry.source, 'url'):
+                                    domain = self._extract_domain(entry.source.url)
+                                    print(f"      Extracted domain from source: {domain}")
+                                else:
+                                    # Fallback: use a generic domain for Google News
+                                    domain = "news.google.com"
+                                    print(f"      Using fallback domain: {domain}")
+                            else:
+                                domain = self._extract_domain(link)
 
                             if not domain:
                                 continue
@@ -280,9 +292,13 @@ class RelatedArticlesAnalyzer:
                                 continue
 
                             # Check reliability with flexible matching
+                            print(f"      Checking domain: {domain}")
                             if not self._is_reliable_source(domain):
+                                print(f"      ❌ Domain not reliable: {domain}")
                                 unreliable_count += 1
                                 continue
+                            else:
+                                print(f"      ✅ Domain is reliable: {domain}")
 
                             # SUCCESS!
                             print(f"    ✓ {domain}: {entry.title[:50]}")
@@ -535,12 +551,25 @@ class RelatedArticlesAnalyzer:
             # Add relevance scores to articles
             for i, article in enumerate(articles):
                 if i < len(similarities):
-                    # Use actual similarity score
-                    # Boost slightly to ensure minimum visibility (0.25-0.95 range)
+                    # Use actual similarity score with more realistic scaling
                     base_score = float(similarities[i])
-                    article['relevance'] = min(0.95, max(0.25, base_score + 0.15))
+                    print(f"    📊 Article {i+1} similarity: {base_score:.4f}")
+                    
+                    # Scale similarity to 0.1-0.9 range for better differentiation
+                    if base_score > 0.1:
+                        # High similarity: scale to 0.7-0.9
+                        scaled_score = 0.7 + (base_score - 0.1) * 2.0
+                    elif base_score > 0.05:
+                        # Medium similarity: scale to 0.4-0.7
+                        scaled_score = 0.4 + (base_score - 0.05) * 6.0
+                    else:
+                        # Low similarity: scale to 0.1-0.4
+                        scaled_score = 0.1 + base_score * 6.0
+                    
+                    article['relevance'] = min(0.9, max(0.1, scaled_score))
+                    print(f"    📈 Final relevance: {article['relevance']:.2f}")
                 else:
-                    article['relevance'] = 0.5
+                    article['relevance'] = 0.3
 
             # Sort by relevance (highest first)
             articles.sort(key=lambda x: x.get('relevance', 0), reverse=True)
@@ -549,9 +578,22 @@ class RelatedArticlesAnalyzer:
             print(f"Error calculating relevance: {e}")
             import traceback
             traceback.print_exc()
-            # Fallback: assign decreasing scores
+            # Fallback: assign varied scores based on position and content quality
             for i, article in enumerate(articles):
-                article['relevance'] = max(0.3, 0.85 - (i * 0.08))
+                # Base score decreases with position
+                base_score = 0.8 - (i * 0.1)
+                
+                # Boost score if article has good title/snippet
+                title_quality = len(article.get('title', '')) > 20
+                snippet_quality = len(article.get('snippet', '')) > 50
+                
+                if title_quality and snippet_quality:
+                    base_score += 0.1
+                elif title_quality or snippet_quality:
+                    base_score += 0.05
+                
+                article['relevance'] = min(0.9, max(0.2, base_score))
+                print(f"    🔄 Fallback relevance for article {i+1}: {article['relevance']:.2f}")
 
         return articles
 

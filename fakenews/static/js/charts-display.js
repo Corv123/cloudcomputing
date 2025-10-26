@@ -273,7 +273,8 @@ const Charts = {
         console.log('🔍 Chart 6 Debug:', {
             data: data,
             hasArticles: data && data.articles,
-            articlesLength: data && data.articles ? data.articles.length : 'N/A'
+            articlesLength: data && data.articles ? data.articles.length : 'N/A',
+            firstArticle: data && data.articles && data.articles.length > 0 ? data.articles[0] : 'N/A'
         });
 
         try {
@@ -289,19 +290,38 @@ const Charts = {
             }
 
             // Create article cards
-            const articlesHtml = data.articles.map(article => `
+            const articlesHtml = data.articles.map(article => {
+                const relevance = article.relevance || 0;
+                const relevancePercent = Math.round(relevance * 100);
+                
+                console.log('📊 Article relevance debug:', {
+                    title: article.title,
+                    relevance: relevance,
+                    relevancePercent: relevancePercent,
+                    article: article
+                });
+                
+                return `
                 <div class="related-article-card">
                     <div class="article-header">
-                        <h4 class="article-title">${article.title}</h4>
-                        <span class="article-source">${article.source}</span>
+                        <h4 class="article-title">${article.title || 'Untitled'}</h4>
+                        <span class="article-source">${article.source || 'Unknown Source'}</span>
                     </div>
-                    <p class="article-summary">${article.summary}</p>
+                    <p class="article-summary">${article.snippet || article.summary || 'No summary available'}</p>
+                    <div class="article-relevance">
+                        <span class="relevance-label">Relevance:</span>
+                        <div class="relevance-bar-container">
+                            <div class="relevance-bar" style="width: ${relevancePercent}%; background: ${relevancePercent >= 70 ? '#00C853' : relevancePercent >= 40 ? '#FFA726' : '#FF4B4B'};"></div>
+                        </div>
+                        <span class="relevance-score">${relevancePercent}%</span>
+                    </div>
                     <div class="article-meta">
-                        <span class="article-date">${article.published_date}</span>
-                        <a href="${article.url}" target="_blank" class="article-link">Read Article →</a>
+                        <span class="article-date">${article.published_date || ''}</span>
+                        <a href="${article.url || '#'}" target="_blank" class="article-link">Read Article →</a>
                     </div>
                 </div>
-            `).join('');
+            `;
+            }).join('');
 
             container.innerHTML = `
                 <div class="related-articles-container">

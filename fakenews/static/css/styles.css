@@ -613,64 +613,168 @@ tr:hover {
 
 /* Chart 6: Related Articles */
 .related-articles-container {
+    padding: 1.5rem;
+}
+
+.related-articles-container h4 {
+    font-size: 1.2rem;
+    color: var(--text-primary);
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+}
+
+/* Override chart-plot background for related articles */
+#chart6 {
+    background: transparent !important;
+    padding: 0 !important;
+}
+
+.articles-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1rem;
-    padding: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
     min-height: 350px;
     max-height: 600px;
     overflow-y: auto;
 }
 
 .related-article-card {
-    background: var(--bg-tertiary);
+    background: var(--bg-secondary);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 1rem;
+    border-radius: 12px;
+    padding: 1.5rem;
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
-    transition: all 0.2s;
+    gap: 1rem;
+    transition: all 0.3s;
 }
 
 .related-article-card:hover {
     border-color: var(--accent);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(255, 75, 75, 0.1);
+    box-shadow: 0 4px 12px rgba(255, 75, 75, 0.2);
 }
 
-.article-card-header {
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 0.75rem;
+.article-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    gap: 1rem;
 }
 
 .article-title {
-    color: var(--text-primary);
-    text-decoration: none;
-    font-size: 0.95rem;
+    font-size: 1.1rem;
     font-weight: 600;
-    line-height: 1.4;
-    display: block;
-    transition: color 0.2s;
-}
-
-.article-title:hover {
-    color: var(--accent);
-}
-
-.article-card-body {
+    color: var(--text-primary);
+    margin: 0;
     flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
+    margin-bottom: 0.5rem;
 }
 
 .article-source {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    background: var(--bg-tertiary);
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+
+.article-summary {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin: 0 0 1rem 0;
+}
+
+.article-relevance {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
     font-size: 0.85rem;
+    margin-bottom: 1rem;
 }
+
+.relevance-label {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+.relevance-bar-container {
+    flex: 1;
+    height: 8px;
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.relevance-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.relevance-score {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 0.85rem;
+    min-width: 40px;
+    text-align: right;
+}
+
+/* Ensure relevance meter is visible */
+.related-article-card .article-relevance {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.75rem !important;
+    font-size: 0.85rem !important;
+    margin-bottom: 1rem !important;
+}
+
+.related-article-card .relevance-bar-container {
+    flex: 1 !important;
+    height: 8px !important;
+    background: var(--bg-tertiary) !important;
+    border-radius: 4px !important;
+    overflow: hidden !important;
+}
+
+.related-article-card .relevance-bar {
+    height: 100% !important;
+    border-radius: 4px !important;
+    transition: width 0.3s ease !important;
+}
+
+.article-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.article-date {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+.article-link {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.article-link:hover {
+    color: var(--accent-hover);
+    text-decoration: underline;
+}
+
+/* Removed old duplicate styles - using updated styles below */
 
 .source-icon {
     color: var(--success);
@@ -696,31 +800,7 @@ tr:hover {
     margin-left: auto;
 }
 
-.article-relevance {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.85rem;
-}
-
-.relevance-label {
-    color: var(--text-secondary);
-    font-size: 0.8rem;
-}
-
-.relevance-bar-container {
-    flex: 1;
-    height: 6px;
-    background: var(--bg-secondary);
-    border-radius: 3px;
-    overflow: hidden;
-}
-
-.relevance-bar {
-    height: 100%;
-    border-radius: 3px;
-    transition: width 0.3s ease;
-}
+/* Removed duplicate relevance styles - using correct styles defined earlier */
 
 .relevance-value {
     color: var(--text-primary);
@@ -895,71 +975,4 @@ tr:hover {
     margin-top: 1rem;
 }
 
-.related-article-card {
-    background: #f8f9fa;
-    border: 1px solid #e9ecef;
-    border-radius: 8px;
-    padding: 1rem;
-    transition: box-shadow 0.2s ease;
-}
-
-.related-article-card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.article-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 0.5rem;
-}
-
-.article-title {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #2c3e50;
-    margin: 0;
-    flex: 1;
-    margin-right: 0.5rem;
-}
-
-.article-source {
-    background: #3498db;
-    color: white;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    white-space: nowrap;
-}
-
-.article-summary {
-    color: #6c757d;
-    font-size: 0.9rem;
-    line-height: 1.4;
-    margin: 0.5rem 0;
-}
-
-.article-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 0.75rem;
-    padding-top: 0.5rem;
-    border-top: 1px solid #e9ecef;
-}
-
-.article-date {
-    color: #6c757d;
-    font-size: 0.8rem;
-}
-
-.article-link {
-    color: #3498db;
-    text-decoration: none;
-    font-size: 0.9rem;
-    font-weight: 500;
-}
-
-.article-link:hover {
-    text-decoration: underline;
-}
+/* Removed old light theme styles - using dark theme styles defined earlier */

@@ -2,6 +2,7 @@
 # Database operations for storing and retrieving articles
 
 import sqlite3
+import json
 from datetime import datetime
 from typing import List, Dict, Optional
 import config
@@ -25,17 +26,59 @@ class ArticleDatabase:
                 source TEXT,
                 published_at TEXT,
                 category TEXT,
+                domain TEXT,
+                analyzed_at TEXT,
+                
+                -- Core Analysis Scores
                 language_score REAL,
                 credibility_score REAL,
                 cross_check_score REAL,
+                sensationalism_bias_likelihood REAL,
                 overall_score REAL,
-                domain TEXT,
+                
+                -- Additional Metrics
                 word_count INTEGER,
                 sensational_keyword_count INTEGER,
-                analyzed_at TEXT,
+                known_source_classification TEXT,
+                
+                -- Chart Data (JSON strings)
+                chart1_data TEXT,  -- Language Quality Bar Chart
+                chart2_data TEXT,  -- Sentiment Pie Chart
+                chart3_data TEXT,  -- Credibility Radar Chart
+                chart4_data TEXT,  -- Similarity Map
+                chart6_data TEXT,  -- Related Articles
+                
+                -- Detailed Analysis Data
+                detailed_metrics TEXT,
+                enhanced_info TEXT,
+                word_frequency_data TEXT,
+                sentiment_flow_data TEXT,
+                
+                -- Technical Data
                 tfidf_vector TEXT
             )
         """)
+        
+        # Add missing columns for existing databases
+        missing_columns = [
+            'sensationalism_bias_likelihood REAL',
+            'known_source_classification TEXT',
+            'detailed_metrics TEXT',
+            'enhanced_info TEXT',
+            'word_frequency_data TEXT',
+            'sentiment_flow_data TEXT',
+            'chart1_data TEXT',
+            'chart2_data TEXT',
+            'chart3_data TEXT',
+            'chart4_data TEXT',
+            'chart6_data TEXT'
+        ]
+        
+        for column in missing_columns:
+            try:
+                cursor.execute(f"ALTER TABLE articles ADD COLUMN {column}")
+            except sqlite3.OperationalError:
+                pass  # Column already exists
         
         conn.commit()
         conn.close()
@@ -53,11 +96,13 @@ class ArticleDatabase:
             
             cursor.execute("""
                 INSERT INTO articles (
-                    url, title, content, source, published_at, category,
-                    language_score, credibility_score, cross_check_score,
-                    overall_score, domain, word_count, sensational_keyword_count,
-                    analyzed_at, tfidf_vector
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    url, title, content, source, published_at, category, domain, analyzed_at,
+                    language_score, credibility_score, cross_check_score, sensationalism_bias_likelihood, overall_score,
+                    word_count, sensational_keyword_count, known_source_classification,
+                    chart1_data, chart2_data, chart3_data, chart4_data, chart6_data,
+                    detailed_metrics, enhanced_info, word_frequency_data, sentiment_flow_data,
+                    tfidf_vector
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 article_data['url'],
                 article_data['title'],
@@ -65,14 +110,25 @@ class ArticleDatabase:
                 article_data.get('source'),
                 article_data.get('published_at'),
                 article_data.get('category'),
+                article_data.get('domain', ''),
+                datetime.now().isoformat(),
                 article_data.get('language_score', 0),
                 article_data.get('credibility_score', 0),
                 article_data.get('cross_check_score', 0),
+                article_data.get('sensationalism_bias_likelihood', 0.5),
                 article_data.get('overall_score', 0),
-                article_data.get('domain', ''),
                 article_data.get('word_count', 0),
                 article_data.get('sensational_keyword_count', 0),
-                datetime.now().isoformat(),
+                article_data.get('known_source_classification'),
+                json.dumps(article_data.get('chart1_data', {})),
+                json.dumps(article_data.get('chart2_data', {})),
+                json.dumps(article_data.get('chart3_data', {})),
+                json.dumps(article_data.get('chart4_data', {})),
+                json.dumps(article_data.get('chart6_data', {})),
+                json.dumps(article_data.get('detailed_metrics', {})),
+                json.dumps(article_data.get('enhanced_info', {})),
+                json.dumps(article_data.get('word_frequency_data', {})),
+                json.dumps(article_data.get('sentiment_flow_data', {})),
                 article_data.get('tfidf_vector', '{}')
             ))
             
@@ -95,7 +151,7 @@ class ArticleDatabase:
             conn.close()
     
     def get_article_by_url(self, url: str) -> Optional[Dict]:
-        """Retrieve article by URL"""
+        """Retrieve article by URL with JSON deserialization"""
         conn = sqlite3.connect(self.db_name)
         cursor = conn.cursor()
         
@@ -105,7 +161,22 @@ class ArticleDatabase:
         
         if result:
             columns = [desc[0] for desc in cursor.description]
-            return dict(zip(columns, result))
+            article = dict(zip(columns, result))
+            
+            # Deserialize JSON fields
+            json_fields = ['chart1_data', 'chart2_data', 'chart3_data', 'chart4_data', 'chart6_data',
+                          'detailed_metrics', 'enhanced_info', 'word_frequency_data', 'sentiment_flow_data']
+            
+            for field in json_fields:
+                if article.get(field):
+                    try:
+                        article[field] = json.loads(article[field])
+                    except (json.JSONDecodeError, TypeError):
+                        article[field] = {}
+                else:
+                    article[field] = {}
+            
+            return article
         return None
     
     def get_all_articles(self) -> List[Dict]:
