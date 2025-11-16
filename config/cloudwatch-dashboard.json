@@ -1,0 +1,97 @@
+{
+    "widgets":  [
+                    {
+                        "properties":  {
+                                           "period":  300,
+                                           "title":  "Lambda Metrics",
+                                           "region":  "ap-southeast-2",
+                                           "metrics":  [
+                                                           [
+                                                               "AWS/Lambda",
+                                                               "Invocations",
+                                                               "FunctionName",
+                                                               "fakenews-analyzer"
+                                                           ],
+                                                           [
+                                                               "...",
+                                                               "Errors",
+                                                               "FunctionName",
+                                                               "fakenews-analyzer"
+                                                           ],
+                                                           [
+                                                               "...",
+                                                               "Duration",
+                                                               "FunctionName",
+                                                               "fakenews-analyzer"
+                                                           ],
+                                                           [
+                                                               "...",
+                                                               "Throttles",
+                                                               "FunctionName",
+                                                               "fakenews-analyzer"
+                                                           ]
+                                                       ],
+                                           "stat":  "Sum"
+                                       },
+                        "type":  "metric"
+                    },
+                    {
+                        "properties":  {
+                                           "period":  300,
+                                           "title":  "API Gateway Metrics",
+                                           "region":  "ap-southeast-2",
+                                           "metrics":  [
+                                                           [
+                                                               "AWS/ApiGateway",
+                                                               "Count",
+                                                               "ApiId",
+                                                               "bq7y9l5ruf"
+                                                           ],
+                                                           [
+                                                               "...",
+                                                               "4XXError",
+                                                               "ApiId",
+                                                               "bq7y9l5ruf"
+                                                           ],
+                                                           [
+                                                               "...",
+                                                               "5XXError",
+                                                               "ApiId",
+                                                               "bq7y9l5ruf"
+                                                           ],
+                                                           [
+                                                               "...",
+                                                               "Latency",
+                                                               "ApiId",
+                                                               "bq7y9l5ruf"
+                                                           ]
+                                                       ],
+                                           "stat":  "Sum"
+                                       },
+                        "type":  "metric"
+                    },
+                    {
+                        "properties":  {
+                                           "period":  300,
+                                           "title":  "DynamoDB Metrics",
+                                           "region":  "ap-southeast-2",
+                                           "metrics":  [
+                                                           [
+                                                               "AWS/DynamoDB",
+                                                               "ConsumedReadCapacityUnits",
+                                                               "TableName",
+                                                               "fakenews-articles"
+                                                           ],
+                                                           [
+                                                               "...",
+                                                               "ConsumedWriteCapacityUnits",
+                                                               "TableName",
+                                                               "fakenews-articles"
+                                                           ]
+                                                       ],
+                                           "stat":  "Sum"
+                                       },
+                        "type":  "metric"
+                    }
+                ]
+}

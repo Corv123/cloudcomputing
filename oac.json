@@ -1,7 +1,0 @@
-{
-  "Name": "fakenews-oac-frontend",
-  "Description": "OAC for frontend S3",
-  "SigningProtocol": "sigv4",
-  "SigningBehavior": "always",
-  "OriginAccessControlOriginType": "s3"
-}

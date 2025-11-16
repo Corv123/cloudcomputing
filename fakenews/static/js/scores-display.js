@@ -5,14 +5,30 @@ function displayScores(article) {
     console.log('🎯 DisplayScores called with article:', article);
     
     // Calculate individual scores with NaN protection
-    const languageScore = Math.round((article.language_score || 0) * 100);
-    const credibilityScore = Math.round((article.credibility_score || 0) * 100);
-    const crosscheckScore = Math.round((article.cross_check_score || 0) * 100);
-    const sensationalismScore = Math.round((article.sensationalism_bias_likelihood || 0.5) * 100);
+    // IMPORTANT: Use nullish coalescing (??) instead of || to handle 0.0 correctly
+    const languageScore = Math.round((article.language_score ?? 0) * 100);
+    const credibilityScore = Math.round((article.credibility_score ?? 0) * 100);
+    const crosscheckScore = Math.round((article.cross_check_score ?? 0) * 100);
+    
+    // Sensationalism: Handle 0.0 correctly and apply bounds (10-95%)
+    let rawSensationalism = article.sensationalism_bias_likelihood ?? 0.5;
+    // Ensure value is a number
+    rawSensationalism = typeof rawSensationalism === 'string' ? parseFloat(rawSensationalism) : rawSensationalism;
+    // Apply bounds: 10% minimum, 95% maximum (matching backend bounds)
+    rawSensationalism = Math.max(0.1, Math.min(0.95, rawSensationalism));
+    const sensationalismScore = Math.round(rawSensationalism * 100);
+    
+    console.log('🔍 Sensationalism score processing:', {
+        raw: article.sensationalism_bias_likelihood,
+        parsed: rawSensationalism,
+        bounded: rawSensationalism,
+        percentage: sensationalismScore
+    });
     
     // Use backend's calculated overall score (weighted average) with NaN protection
+    // Use nullish coalescing to handle 0.0 correctly
     console.log('🔍 Raw overall_score from backend:', article.overall_score, typeof article.overall_score);
-    const overallScore = Math.round((article.overall_score || 0.5) * 100);
+    const overallScore = Math.round((article.overall_score ?? 0.5) * 100);
     
     console.log('📊 Scores calculated:', {
         language: languageScore,

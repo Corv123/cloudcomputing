@@ -1,6 +1,10 @@
 // static/js/charts-display.js
 // Module for rendering charts using Plotly
 
+console.log('🔵 CHARTS-DISPLAY.JS LOADED - VERSION 2.4');
+console.log('🔵 File loaded at:', new Date().toISOString());
+console.log('🔵 FIXED: Removed unreachable code and unclosed comments');
+
 const Charts = {
     // Common chart configuration
     config: {
@@ -161,88 +165,123 @@ const Charts = {
     },
 
     // Chart 5: Similarity Map (from existing database)
-    async renderChart5(articleId) {
+    async renderChart5(articleId, chart5Data) {
         try {
-            const result = await API.getSimilarityMap(articleId);
+            console.log('🔍 renderChart5 called with:', { articleId, chart5Data });
             
-            if (!result.success || !result.data || result.data.length === 0) {
-                document.getElementById('chart5').innerHTML = '<p style="padding: 2rem; text-align: center; color: #A0A0A0;">Add more articles to view similarity map</p>';
+            const container = document.getElementById('chart5');
+            if (!container) {
+                console.error('Chart 5 container not found');
                 return;
             }
-
-            // Separate user article from others
-            const userArticle = result.data.find(d => d.type === 'user');
-            const otherArticles = result.data.filter(d => d.type !== 'user');
-
+            
+            // If data is provided directly, use it
+            let data = chart5Data;
+            
+            // If no data provided, try to get from articleId (for backward compatibility)
+            if (!data && articleId) {
+                console.log('No chart5Data provided, data should come from article response');
+                container.innerHTML = '<p style="padding: 2rem; text-align: center; color: #A0A0A0;">Loading similarity map...</p>';
+                return;
+            }
+            
+            if (!data || !data.points || data.points.length === 0) {
+                container.innerHTML = '<p style="padding: 2rem; text-align: center; color: #A0A0A0;">Add more articles to view similarity map</p>';
+                return;
+            }
+            
+            console.log('📊 Chart 5 data:', data);
+            console.log('📊 Points count:', data.points.length);
+            
+            // Separate current article from other articles
+            // Handle both boolean true and string "true" (in case of JSON conversion)
+            const currentArticle = data.points.find(p => p.is_current === true || p.is_current === "true" || p.x === 1.0);
+            const otherArticles = data.points.filter(p => {
+                const isCurrent = p.is_current === true || p.is_current === "true" || p.x === 1.0;
+                return !isCurrent;
+            });
+            
+            console.log('🔍 Current article found:', currentArticle ? 'YES' : 'NO');
+            if (currentArticle) {
+                console.log('   Current article:', currentArticle.title, 'x:', currentArticle.x, 'is_current:', currentArticle.is_current);
+            }
+            
             const traces = [];
-
-            // Group by type
-            const realNews = otherArticles.filter(d => d.type === 'real');
-            const fakeNews = otherArticles.filter(d => d.type === 'fake');
-            const mixedNews = otherArticles.filter(d => d.type === 'mixed');
-
-            // Add traces for each category
-            if (realNews.length > 0) {
+            
+            // Add trace for other articles
+            if (otherArticles.length > 0) {
                 traces.push({
-                    x: realNews.map(d => d.similarity),
-                    y: realNews.map(d => d.credibility),
+                    x: otherArticles.map(p => p.x),
+                    y: otherArticles.map(p => p.y),
                     mode: 'markers',
                     type: 'scatter',
-                    name: 'Real News',
-                    text: realNews.map(d => d.title),
-                    marker: { size: 10, color: '#00C853' },
-                    hovertemplate: '<b>%{text}</b><br>Source: ' + realNews.map(d => d.source).join('<br>') + '<extra></extra>'
+                    name: 'Other Articles',
+                    text: otherArticles.map(p => {
+                        const source = p.source || 'Unknown';
+                        return `${p.title || 'Untitled'}<br>Source: ${source}`;
+                    }),
+                    marker: {
+                        size: 10,
+                        color: otherArticles.map(p => p.y),  // Color by credibility
+                        colorscale: [
+                            [0, '#FF5252'],  // Red for low credibility
+                            [0.5, '#FFA726'],  // Orange for medium
+                            [1, '#00C853']  // Green for high credibility
+                        ],
+                        showscale: true,
+                        colorbar: {
+                            title: 'Credibility',
+                            tickvals: [0, 0.5, 1],
+                            ticktext: ['Low', 'Medium', 'High'],
+                            x: 1.15
+                        }
+                    },
+                    hovertemplate: '<b>%{text}</b><br>Similarity: %{x:.2f}<br>Credibility: %{y:.2f}<extra></extra>'
                 });
             }
-
-            if (mixedNews.length > 0) {
+            
+            // Add trace for current article (highlighted)
+            if (currentArticle) {
                 traces.push({
-                    x: mixedNews.map(d => d.similarity),
-                    y: mixedNews.map(d => d.credibility),
-                    mode: 'markers',
-                    type: 'scatter',
-                    name: 'Mixed',
-                    text: mixedNews.map(d => d.title),
-                    marker: { size: 10, color: '#FFA726' }
-                });
-            }
-
-            if (fakeNews.length > 0) {
-                traces.push({
-                    x: fakeNews.map(d => d.similarity),
-                    y: fakeNews.map(d => d.credibility),
-                    mode: 'markers',
-                    type: 'scatter',
-                    name: 'Fake News',
-                    text: fakeNews.map(d => d.title),
-                    marker: { size: 10, color: '#FF5252' }
-                });
-            }
-
-            // Add user article
-            if (userArticle) {
-                traces.push({
-                    x: [userArticle.similarity],
-                    y: [userArticle.credibility],
+                    x: [currentArticle.x],
+                    y: [currentArticle.y],
                     mode: 'markers',
                     type: 'scatter',
                     name: 'Your Article',
-                    text: [userArticle.title],
-                    marker: { size: 18, color: '#FF4B4B', symbol: 'star' }
+                    text: [`${currentArticle.title || 'Current Article'}<br>Source: ${currentArticle.source || 'Current'}`],
+                    marker: {
+                        size: 20,
+                        color: '#FF4B4B',  // Red star for current article
+                        symbol: 'star',
+                        line: {
+                            color: '#FFFFFF',
+                            width: 2
+                        }
+                    },
+                    hovertemplate: '<b>%{text}</b><br>Similarity: %{x:.2f} (Your Article)<br>Credibility: %{y:.2f}<extra></extra>'
                 });
             }
-
+            
             const layout = {
                 ...this.layout,
-                xaxis: { title: 'Similarity to Your Article', range: [0, 1] },
+                xaxis: { 
+                    title: 'Content Similarity to Your Article', 
+                    range: [0, 1.1]  // Slightly extend to show current article at x=1.0
+                },
                 yaxis: { title: 'Credibility Score', range: [0, 1] },
+                title: 'Similarity Map',
                 showlegend: true,
-                legend: { x: 0, y: 1 }
+                legend: {
+                    x: 0,
+                    y: 1,
+                    bgcolor: 'rgba(255, 255, 255, 0.8)'
+                }
             };
-
+            
             Plotly.newPlot('chart5', traces, layout, this.config);
+            console.log('✅ Chart 5 rendered successfully');
         } catch (error) {
-            console.error('Error rendering chart 5:', error);
+            console.error('❌ Error rendering chart 5:', error);
             document.getElementById('chart5').innerHTML = '<p style="padding: 2rem; text-align: center; color: #FF5252;">Error loading similarity map</p>';
         }
     },
@@ -255,13 +294,11 @@ const Charts = {
     // Word frequency chart removed - not needed
 
     // Sentiment flow chart removed - not needed
+};
 
-    /**
-     * Render Chart 6: Related Articles from Reputable Sources
-     * Displays related articles as cards with clickable links
-     */
-    renderChart6: function(data) {
-        console.log('📰 Rendering Chart 6 (Related Articles):', data);
+// Add renderChart6 using function assignment (to avoid syntax parsing issues)
+Charts.renderChart6 = function(data) {
+        console.log('Rendering Chart 6 (Related Articles):', data);
         
         const container = document.getElementById('chart6');
         if (!container) {
@@ -270,15 +307,18 @@ const Charts = {
         }
 
         // Debug: Check data structure
+        // Backend returns chart6_data with 'articles' array
+        const articles = (data && data.articles) || (data && data.related_articles) || [];
         console.log('🔍 Chart 6 Debug:', {
             data: data,
+            hasRelatedArticles: data && data.related_articles,
             hasArticles: data && data.articles,
-            articlesLength: data && data.articles ? data.articles.length : 'N/A',
-            firstArticle: data && data.articles && data.articles.length > 0 ? data.articles[0] : 'N/A'
+            articlesLength: articles.length,
+            firstArticle: articles.length > 0 ? articles[0] : 'N/A'
         });
 
         try {
-            if (!data || !data.articles || data.articles.length === 0) {
+            if (!data || articles.length === 0) {
                 container.innerHTML = `
                     <div class="placeholder-content">
                         <div class="placeholder-icon">📰</div>
@@ -289,8 +329,8 @@ const Charts = {
                 return;
             }
 
-            // Create article cards
-            const articlesHtml = data.articles.map(article => {
+                // Create article cards
+                const articlesHtml = articles.map(article => {
                 const relevance = article.relevance || 0;
                 const relevancePercent = Math.round(relevance * 100);
                 
@@ -336,5 +376,4 @@ const Charts = {
             console.error('Error creating related articles chart:', error);
             container.innerHTML = '<p style="padding: 2rem; text-align: center; color: #FF5252;">Chart creation error</p>';
         }
-    }
 };

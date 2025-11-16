@@ -1,0 +1,18 @@
+﻿{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "account:GetAccountInformation",
+        "account:ListRegions",
+        "account:GetContactInformation",
+        "account:PutContactInformation",
+        "billing:GetSellerOfRecord",
+        "billing:GetBillingData",
+        "billing:ListBillingViews"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

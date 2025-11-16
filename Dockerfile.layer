@@ -1,0 +1,7 @@
+FROM public.ecr.aws/lambda/python:3.11
+
+COPY lambda-layer-requirements.txt /tmp/requirements.txt
+RUN pip install --upgrade pip
+RUN pip install -r /tmp/requirements.txt -t /opt/python/lib/python3.11/site-packages
+ENV PYTHONPATH="/opt/python/lib/python3.11/site-packages"
+RUN python -c "import nltk; nltk.download('punkt', download_dir='/opt/python/lib/python3.11/site-packages/nltk_data'); nltk.download('stopwords', download_dir='/opt/python/lib/python3.11/site-packages/nltk_data'); nltk.download('vader_lexicon', download_dir='/opt/python/lib/python3.11/site-packages/nltk_data')"

@@ -2,7 +2,7 @@
 // Tab management module
 
 function switchTab(tabName) {
-    console.log('Switching to tab:', tabName);
+    console.log('🔵 [TABS.JS] Switching to tab:', tabName);
     
     // Remove active from all nav buttons
     document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -18,11 +18,19 @@ function switchTab(tabName) {
     const targetBtn = document.querySelector(`[onclick="switchTab('${tabName}')"]`);
     const targetTab = document.getElementById(`${tabName}Tab`);
     
+    console.log('🔵 [TABS.JS] Target button:', targetBtn ? 'found' : 'NOT FOUND');
+    console.log('🔵 [TABS.JS] Target tab:', targetTab ? 'found' : 'NOT FOUND');
+    
     if (targetBtn) targetBtn.classList.add('active');
     if (targetTab) targetTab.classList.add('active');
     
     // Load data for specific tabs
     if (tabName === 'database') {
-        loadDatabase();
+        console.log('🔵 [TABS.JS] Calling loadDatabase()...');
+        if (typeof loadDatabase === 'function') {
+            loadDatabase();
+        } else {
+            console.error('❌ [TABS.JS] loadDatabase is not defined!');
+        }
     }
 }

@@ -90,7 +90,33 @@ const EnhancedMetrics = {
      * @returns {string} HTML string for card
      */
     createCard(card) {
-        const score = card.data.score;
+        // Handle different data structures from backend
+        let score, status, description;
+        
+        if (card.data && typeof card.data === 'object' && card.data.score !== undefined) {
+            // Expected structure: { score, status, description }
+            score = card.data.score;
+            status = card.data.status || 'Unknown';
+            description = card.data.description || 'No description available';
+        } else if (typeof card.data === 'string') {
+            // Backend returns simple string (e.g., 'Established')
+            // Use default values based on card type
+            status = card.data;
+            description = `Domain status: ${card.data}`;
+            
+            // Assign default scores based on card type and status
+            if (card.id === 'domain_age') {
+                score = card.data === 'Established' ? 75 : 50;
+            } else {
+                score = 50; // Default moderate score
+            }
+        } else {
+            // Fallback for missing data
+            score = 50;
+            status = 'Unknown';
+            description = 'Data not available';
+        }
+        
         const colorClass = this.getColorClass(score);
         const bgColor = this.getBackgroundColor(colorClass);
         const verifiedBadge = card.verified ?
@@ -114,11 +140,11 @@ const EnhancedMetrics = {
                 </div>
 
                 <div class="card-status">
-                    <span class="status-badge ${colorClass}">${card.data.status}</span>
+                    <span class="status-badge ${colorClass}">${status}</span>
                 </div>
 
                 <div class="card-description">
-                    ${card.data.description}
+                    ${description}
                     ${card.extraInfo ? `<div class="extra-info">${card.extraInfo}</div>` : ''}
                 </div>
             </div>

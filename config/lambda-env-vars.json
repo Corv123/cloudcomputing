@@ -1,0 +1,5 @@
+﻿{
+  "SKLEARN_MODEL_PATH": "s3://fakenews-ml-models-ap-southeast-2/models/sensationalism_model_comprehensive.joblib",
+  "SKLEARN_VECTORIZER_PATH": "s3://fakenews-ml-models-ap-southeast-2/models/tfidf_vectorizer_comprehensive.joblib",
+  "SKLEARN_SCALER_PATH": "s3://fakenews-ml-models-ap-southeast-2/models/scaler_comprehensive.joblib"
+}

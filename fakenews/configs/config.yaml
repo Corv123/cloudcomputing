@@ -2,12 +2,12 @@ seed: 42
 train:
   test_size: 0.2
   model_type: linear_svm  # Better for this task
-  max_features: 50000     # More features
-  ngrams: [1, 2]
-  min_df: 2
-  max_df: 0.95
+  max_features: 100000    # Maximum features for best quality (was 50000)
+  ngrams: [1, 3]          # Include trigrams for better context (was [1, 2])
+  min_df: 1               # Include rare but potentially important words (was 2)
+  max_df: 0.90            # Slightly more restrictive to focus on meaningful terms (was 0.95)
   class_weight: balanced
-  cv_folds: 10           # More CV folds
+  cv_folds: 10            # More CV folds for better validation
 service:
   model_path: models/sensationalism_model.joblib
   vectorizer_path: models/tfidf_vectorizer.joblib

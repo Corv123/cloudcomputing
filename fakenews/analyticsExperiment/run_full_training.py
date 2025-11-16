@@ -1,6 +1,7 @@
 """
 Full Training Script with Detailed Metrics
 Trains the primary model and generates comprehensive performance metrics
+UPDATED: Ensures NumPy 1.24.3 compatibility for Lambda deployment
 """
 import os
 import sys
@@ -21,6 +22,34 @@ from sklearn.preprocessing import StandardScaler
 from scipy import sparse
 import joblib
 import time
+
+# Verify NumPy version compatibility (must be < 2.0 for Lambda compatibility)
+def verify_numpy_version():
+    """Verify NumPy version is compatible with Lambda (1.24.3 recommended)"""
+    np_version = np.__version__
+    print(f"NumPy version: {np_version}")
+    
+    # Parse version
+    major, minor, patch = map(int, np_version.split('.')[:3])
+    
+    if major >= 2:
+        print(f"❌ ERROR: NumPy {np_version} is not compatible with Lambda!")
+        print("Models trained with NumPy 2.0+ cannot be loaded in Lambda.")
+        print("Please install NumPy 1.24.3: pip install numpy==1.24.3")
+        raise RuntimeError(f"NumPy version {np_version} is incompatible. Use NumPy 1.24.3")
+    elif major == 1 and minor < 24:
+        print(f"⚠️  WARNING: NumPy {np_version} may have compatibility issues.")
+        print("Recommended: NumPy 1.24.3")
+    else:
+        print(f"✓ NumPy {np_version} is compatible with Lambda")
+    
+    # Check if show_config exists (removed in NumPy 2.0+)
+    if not hasattr(np, 'show_config'):
+        print("⚠️  WARNING: NumPy show_config not available - this may cause issues with scikit-learn")
+    else:
+        print("✓ NumPy show_config available (required for scikit-learn)")
+    
+    return np_version
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
@@ -303,6 +332,20 @@ def main():
     print("Started at:", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     print("=" * 80)
     
+    # Verify NumPy version before training
+    print("\n" + "=" * 80)
+    print("VERIFYING ENVIRONMENT COMPATIBILITY")
+    print("=" * 80)
+    try:
+        np_version = verify_numpy_version()
+        print(f"✓ Environment verified - NumPy {np_version}")
+    except RuntimeError as e:
+        print(f"❌ {e}")
+        print("\nPlease fix the NumPy version and try again:")
+        print("  pip install numpy==1.24.3 scipy==1.10.1 scikit-learn==1.3.0")
+        return 1
+    print()
+    
     # Load data
     X_texts, y, df = load_datasets()
     
@@ -362,8 +405,15 @@ def main():
         "cross_validation": cv_results
     }
     
-    # Save model artifacts
+    # Save model artifacts (with comprehensive naming for Lambda)
     save_model_artifacts(model, vectorizer, scaler)
+    
+    # Also save as "comprehensive" versions for Lambda
+    print("\nSaving 'comprehensive' versions for Lambda deployment...")
+    joblib.dump(model, os.path.join(MODELS_DIR, "sensationalism_model_comprehensive.joblib"))
+    joblib.dump(vectorizer, os.path.join(MODELS_DIR, "tfidf_vectorizer_comprehensive.joblib"))
+    joblib.dump(scaler, os.path.join(MODELS_DIR, "scaler_comprehensive.joblib"))
+    print("✓ Saved comprehensive versions for Lambda")
     
     # Save results
     save_results(comprehensive_results, timestamp)

@@ -9,6 +9,32 @@ document.addEventListener('DOMContentLoaded', () => {
     loadStats();
 });
 
+// Switch between tabs
+function switchTab(tabName) {
+    console.log('Switching to tab:', tabName);
+    
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Remove active class from all nav buttons
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Show selected tab and activate button
+    if (tabName === 'analyze') {
+        document.getElementById('analyzeTab').classList.add('active');
+        document.querySelectorAll('.nav-btn')[0].classList.add('active');
+    } else if (tabName === 'database') {
+        document.getElementById('databaseTab').classList.add('active');
+        document.querySelectorAll('.nav-btn')[1].classList.add('active');
+        // Load database when switching to database tab
+        loadDatabase();
+    }
+}
+
 // Load statistics
 async function loadStats() {
     try {
@@ -96,7 +122,14 @@ async function analyzeArticle() {
             }
             
             // Render chart 5 (similarity map)
-            await Charts.renderChart5(currentArticleId);
+            if (result.article.chart5_data) {
+                console.log('=== RENDERING CHART 5 ===');
+                console.log('Chart5 data:', result.article.chart5_data);
+                await Charts.renderChart5(currentArticleId, result.article.chart5_data);
+            } else {
+                console.log('❌ Chart5 data missing');
+                await Charts.renderChart5(currentArticleId, null);
+            }
             
             // Render chart 6 (related articles)
             if (result.article.chart6_data) {
@@ -114,51 +147,9 @@ async function analyzeArticle() {
                 console.log('❌ Enhanced metrics not available');
             }
             
-            // Get additional analysis using the new prediction endpoint
-            console.log('=== GETTING ADDITIONAL ANALYSIS ===');
-            const articleContent = result.article.content || '';
-            console.log('Article content length:', articleContent.length);
-            
-            if (articleContent.length > 0) {
-                try {
-                    console.log('🔮 Calling prediction API for sensationalism analysis...');
-                    console.log('🔮 Article content preview:', articleContent.substring(0, 200) + '...');
-                    console.log('🔮 Content length:', articleContent.length);
-                    
-                    const predictionResult = await API.predictSensationalism(articleContent);
-                    console.log('🔮 Full prediction result:', predictionResult);
-                    console.log('🔮 Sensationalism score:', predictionResult.sensationalism_bias_likelihood);
-                    console.log('🔮 Analysis available:', predictionResult.analysis_available);
-                    console.log('🔮 Model confidence:', predictionResult.model_confidence);
-                    
-                    if (predictionResult.error) {
-                        console.error('❌ Prediction API returned error:', predictionResult.error);
-                    }
-                    
-                    if (predictionResult.sensationalism_bias_likelihood === 0.5) {
-                        console.warn('⚠️ WARNING: Sensationalism score is 0.5 - this indicates a problem!');
-                        console.warn('⚠️ This usually means:');
-                        console.warn('   - Model not loaded properly');
-                        console.warn('   - Text processing failed');
-                        console.warn('   - ML prediction failed');
-                        console.warn('   - Fallback to default value');
-                    }
-                    
-                    // Update the article data with prediction results
-                    result.article.sensationalism_bias_likelihood = predictionResult.sensationalism_bias_likelihood;
-                    result.article.feature_breakdown = predictionResult.feature_breakdown;
-                    result.article.interpretation = predictionResult.interpretation;
-                    
-                    console.log('✅ Updated article with prediction data');
-                    console.log('✅ Final sensationalism score:', result.article.sensationalism_bias_likelihood);
-                } catch (error) {
-                    console.error('❌ Error getting prediction:', error);
-                    console.error('❌ Error details:', error.message);
-                    console.error('❌ This means the /api/predict endpoint failed');
-                }
-            } else {
-                console.warn('⚠️ No article content available for prediction');
-            }
+            // Sensationalism score is already included in the analyze response
+            // No need to call separate prediction endpoint
+            console.log('✅ Sensationalism score from analyze:', result.article.sensationalism_bias_likelihood);
             
             // Render additional charts if data is available
             console.log('=== ADDITIONAL CHARTS CHECK ===');
@@ -214,19 +205,26 @@ function showError(message) {
 
 // Load database (called when switching to database tab)
 async function loadDatabase() {
+    console.log('🔵 [MAIN.JS] loadDatabase() called');
     try {
+        console.log('🔵 [MAIN.JS] Fetching articles from API...');
         const result = await API.getArticles();
+        console.log('🔵 [MAIN.JS] API result:', result);
+        console.log('🔵 [MAIN.JS] Success:', result.success);
+        console.log('🔵 [MAIN.JS] Articles count:', result.articles ? result.articles.length : 0);
         
-        if (result.success && result.articles.length > 0) {
+        if (result.success && result.articles && result.articles.length > 0) {
+            console.log('✅ [MAIN.JS] Rendering', result.articles.length, 'articles');
             renderDatabaseTable(result.articles);
             document.getElementById('databaseTable').style.display = 'block';
             document.getElementById('noDatabaseData').style.display = 'none';
         } else {
+            console.log('⚠️ [MAIN.JS] No articles to display');
             document.getElementById('databaseTable').style.display = 'none';
             document.getElementById('noDatabaseData').style.display = 'block';
         }
     } catch (error) {
-        console.error('Error loading database:', error);
+        console.error('❌ [MAIN.JS] Error loading database:', error);
     }
 }
 
