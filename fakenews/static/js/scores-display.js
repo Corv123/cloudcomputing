@@ -1,33 +1,20 @@
-// static/js/scores-display.js
-// Module for displaying scores
+// Purpose-Driven Score Display - Version 3.0
+// Purpose: Show credibility verdict clearly and build trust
 
 function displayScores(article) {
     console.log('🎯 DisplayScores called with article:', article);
     
     // Calculate individual scores with NaN protection
-    // IMPORTANT: Use nullish coalescing (??) instead of || to handle 0.0 correctly
     const languageScore = Math.round((article.language_score ?? 0) * 100);
     const credibilityScore = Math.round((article.credibility_score ?? 0) * 100);
     const crosscheckScore = Math.round((article.cross_check_score ?? 0) * 100);
     
-    // Sensationalism: Handle 0.0 correctly and apply bounds (10-95%)
+    // Sensationalism: Handle correctly
     let rawSensationalism = article.sensationalism_bias_likelihood ?? 0.5;
-    // Ensure value is a number
     rawSensationalism = typeof rawSensationalism === 'string' ? parseFloat(rawSensationalism) : rawSensationalism;
-    // Apply bounds: 10% minimum, 95% maximum (matching backend bounds)
-    rawSensationalism = Math.max(0.1, Math.min(0.95, rawSensationalism));
     const sensationalismScore = Math.round(rawSensationalism * 100);
     
-    console.log('🔍 Sensationalism score processing:', {
-        raw: article.sensationalism_bias_likelihood,
-        parsed: rawSensationalism,
-        bounded: rawSensationalism,
-        percentage: sensationalismScore
-    });
-    
-    // Use backend's calculated overall score (weighted average) with NaN protection
-    // Use nullish coalescing to handle 0.0 correctly
-    console.log('🔍 Raw overall_score from backend:', article.overall_score, typeof article.overall_score);
+    // Overall score
     const overallScore = Math.round((article.overall_score ?? 0.5) * 100);
     
     console.log('📊 Scores calculated:', {
@@ -35,66 +22,66 @@ function displayScores(article) {
         credibility: credibilityScore,
         crosscheck: crosscheckScore,
         sensationalism: sensationalismScore,
-        overall: overallScore,
-        rawOverall: article.overall_score
+        overall: overallScore
     });
     
-    // Display overall score
-    const overallScoreElement = document.getElementById('overallScoreNumber');
-    if (overallScoreElement) {
-        overallScoreElement.textContent = overallScore;
-        console.log('✅ Overall score set to:', overallScore);
-        
-        // Add a watcher to detect if the score gets changed
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if (mutation.type === 'childList' || mutation.type === 'characterData') {
-                    console.log('🚨 Overall score was changed! New value:', overallScoreElement.textContent);
-                }
-            });
-        });
-        observer.observe(overallScoreElement, { childList: true, characterData: true, subtree: true });
-        
-    } else {
-        console.error('❌ overallScoreNumber element not found!');
-    }
+    // Update verdict card
+    const verdictCard = document.getElementById('verdictCard');
+    const overallScoreCircle = document.getElementById('overallScoreCircle');
+    const overallScoreNumber = document.getElementById('overallScoreNumber');
+    const verdictBadge = document.getElementById('verdictBadge');
+    const verdictText = document.getElementById('verdictText');
     
-    const scoreCircle = document.getElementById('overallScoreCircle');
-    const scoreVerdict = document.getElementById('scoreVerdict');
-    
-    console.log('🔍 Elements found:', {
-        scoreCircle: !!scoreCircle,
-        scoreVerdict: !!scoreVerdict
-    });
-    
-    if (!scoreCircle || !scoreVerdict) {
-        console.error('❌ Missing score elements:', {
-            scoreCircle: !!scoreCircle,
-            scoreVerdict: !!scoreVerdict
-        });
+    if (!verdictCard || !overallScoreCircle || !overallScoreNumber || !verdictBadge || !verdictText) {
+        console.error('❌ Missing verdict card elements');
         return;
     }
     
-    // Apply styling based on score
-    scoreCircle.classList.remove('high', 'medium', 'low');
+    // Update overall score number
+    overallScoreNumber.textContent = overallScore;
+    
+    // Determine verdict and styling
+    let verdictClass = '';
+    let verdictLabel = '';
+    let badgeClass = '';
     
     if (overallScore >= 70) {
-        scoreCircle.classList.add('high');
-        scoreVerdict.textContent = '✓ HIGH CREDIBILITY';
-        scoreVerdict.style.color = 'var(--success)';
+        verdictClass = 'high';
+        verdictLabel = 'HIGH CREDIBILITY';
+        badgeClass = 'high';
+        overallScoreCircle.classList.add('high');
+        overallScoreCircle.classList.remove('medium', 'low');
     } else if (overallScore >= 40) {
-        scoreCircle.classList.add('medium');
-        scoreVerdict.textContent = '⚠ MEDIUM CREDIBILITY';
-        scoreVerdict.style.color = 'var(--warning)';
+        verdictClass = 'medium';
+        verdictLabel = 'MEDIUM CREDIBILITY';
+        badgeClass = 'medium';
+        overallScoreCircle.classList.add('medium');
+        overallScoreCircle.classList.remove('high', 'low');
     } else {
-        scoreCircle.classList.add('low');
-        scoreVerdict.textContent = '✗ LOW CREDIBILITY';
-        scoreVerdict.style.color = 'var(--danger)';
+        verdictClass = 'low';
+        verdictLabel = 'LOW CREDIBILITY';
+        badgeClass = 'low';
+        overallScoreCircle.classList.add('low');
+        overallScoreCircle.classList.remove('high', 'medium');
     }
     
-    // Display individual scores
+    // Update verdict card styling
+    verdictCard.classList.remove('high', 'medium', 'low');
+    verdictCard.classList.add(verdictClass);
+    
+    // Update badge
+    verdictBadge.classList.remove('high', 'medium', 'low');
+    verdictBadge.classList.add(badgeClass);
+    verdictText.textContent = verdictLabel;
+    
+    // Display individual scores in verdict card
     document.getElementById('languageScore').textContent = languageScore + '%';
     document.getElementById('credibilityScore').textContent = credibilityScore + '%';
     document.getElementById('crosscheckScore').textContent = crosscheckScore + '%';
     document.getElementById('sensationalismScore').textContent = sensationalismScore + '%';
+    
+    // Show verdict card
+    if (verdictCard) {
+        verdictCard.style.display = 'block';
+    }
 }

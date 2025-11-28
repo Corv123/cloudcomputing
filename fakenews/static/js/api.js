@@ -39,12 +39,23 @@ const API = {
                 throw new Error(errorData.error || errorData.message || `HTTP ${response.status}`);
             }
             
-            const result = await response.json();
+            let result;
+            const responseText = await response.text();
+            console.log('[API] Raw response text:', responseText.substring(0, 200));
+            
+            try {
+                result = JSON.parse(responseText);
+            } catch (e) {
+                console.error('[API] Failed to parse JSON:', e);
+                throw new Error('Invalid JSON response: ' + responseText.substring(0, 100));
+            }
+            
             console.log('[API] Response received:', result);
             console.log('[API] Response type:', typeof result);
             console.log('[API] Has statusCode?', !!result.statusCode);
             console.log('[API] Has body?', !!result.body);
-            console.log('[API] Body type:', typeof result.body);
+            console.log('[API] Has success?', !!result.success);
+            console.log('[API] Has article?', !!result.article);
             
             // Handle API Gateway response format (if wrapped in {statusCode, headers, body})
             if (result && result.statusCode && result.body) {
@@ -70,7 +81,13 @@ const API = {
                 return parsedBody;
             }
             
-            console.log('[API] Response is not wrapped - returning as-is');
+            // API Gateway already unwrapped it - result should be the body directly
+            console.log('[API] Response is already unwrapped by API Gateway');
+            console.log('[API] Returning result directly:', {
+                success: result.success,
+                hasArticle: !!result.article,
+                keys: Object.keys(result)
+            });
             return result;
         } catch (error) {
             console.error('[API] Error (analyze):', error);
@@ -86,11 +103,39 @@ const API = {
     // Get database statistics
     async getStats() {
         try {
-            const response = await fetch(`${this.baseURL}/stats`);
+            console.log('[API] Fetching stats from:', `${this.baseURL}/stats`);
+            const response = await fetch(`${this.baseURL}/stats`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            console.log('[API] Stats response status:', response.status);
+            console.log('[API] Stats response headers:', Object.fromEntries(response.headers.entries()));
+            
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
+                const errorText = await response.text();
+                console.error('[API] Stats error response:', errorText);
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
             }
-            const result = await response.json();
+            
+            const responseText = await response.text();
+            console.log('[API] Stats raw response:', responseText);
+            
+            let result;
+            try {
+                result = JSON.parse(responseText);
+            } catch (e) {
+                // Check if API Gateway wrapped it
+                const wrapped = JSON.parse(responseText);
+                if (wrapped.statusCode && wrapped.body) {
+                    result = typeof wrapped.body === 'string' ? JSON.parse(wrapped.body) : wrapped.body;
+                } else {
+                    throw e;
+                }
+            }
+            
+            console.log('[API] Stats result:', result);
             return result;
         } catch (error) {
             console.error('API Error (stats):', error);

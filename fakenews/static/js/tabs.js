@@ -5,7 +5,7 @@ function switchTab(tabName) {
     console.log('🔵 [TABS.JS] Switching to tab:', tabName);
     
     // Remove active from all nav buttons
-    document.querySelectorAll('.nav-btn').forEach(btn => {
+    document.querySelectorAll('.nav-tab').forEach(btn => {
         btn.classList.remove('active');
     });
     

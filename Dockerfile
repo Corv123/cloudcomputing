@@ -4,6 +4,11 @@
 # Use AWS-provided Python 3.11 base image with Lambda Runtime Interface
 FROM public.ecr.aws/lambda/python:3.11
 
+# Install build tools only if needed (torch uses pre-built wheels, but some deps might need it)
+# Using minimal install to speed up
+RUN yum install -y gcc gcc-c++ make --setopt=tsflags=nodocs && \
+    yum clean all
+
 # Install ML dependencies with retry and timeout settings
 # Split into smaller groups to avoid timeout issues
 RUN /var/lang/bin/python3.11 -m pip install --no-cache-dir \
@@ -48,17 +53,57 @@ RUN /var/lang/bin/python3.11 -m pip install --no-cache-dir \
 
 # Install NLP libraries
 RUN /var/lang/bin/python3.11 -m pip install --no-cache-dir \
-    --default-timeout=300 \
-    --retries=5 \
-    nltk==3.8.1 \
-    vaderSentiment==3.3.2 \
-    -t ${LAMBDA_TASK_ROOT}
+        --default-timeout=300 \
+        --retries=5 \
+        nltk==3.8.1 \
+        vaderSentiment==3.3.2 \
+        feedparser==6.0.10 \
+        duckduckgo-search==4.1.1 \
+        textblob==0.17.1 \
+        -t ${LAMBDA_TASK_ROOT}
+
+# Install sentence-transformers for embeddings
+# Only install torch (CPU-only), skip torchvision/torchaudio (not needed, saves ~1GB)
+RUN /var/lang/bin/python3.11 -m pip install --no-cache-dir \
+        --default-timeout=600 \
+        --retries=3 \
+        --index-url https://download.pytorch.org/whl/cpu \
+        torch \
+        -t ${LAMBDA_TASK_ROOT}
+
+# Install sentence-transformers (after torch)
+RUN /var/lang/bin/python3.11 -m pip install --no-cache-dir \
+        --default-timeout=600 \
+        --retries=3 \
+        sentence-transformers==2.2.2 \
+        -t ${LAMBDA_TASK_ROOT} || \
+    echo "Warning: sentence-transformers installation failed, embeddings will use fallback"
+
+# Note: pandas removed - not needed in Lambda function
+# features_enhanced.py uses only numpy (pandas was imported but never used)
+# CSV reading uses Python's built-in csv module
 
 # Download NLTK data to /tmp (Lambda writable directory)
 RUN /var/lang/bin/python3.11 -c "import nltk; nltk.data.path.append('/tmp'); nltk.download('punkt', download_dir='/tmp', quiet=True); nltk.download('vader_lexicon', download_dir='/tmp', quiet=True); nltk.download('stopwords', download_dir='/tmp', quiet=True)"
 
 # Copy Lambda function code
 COPY lambda_function.py ${LAMBDA_TASK_ROOT}/
+
+# Copy analyzer classes and dependencies
+# Copy entire fakenews structure to maintain import paths
+COPY fakenews/ ${LAMBDA_TASK_ROOT}/fakenews/
+# Also copy analyzers to root for direct import
+COPY fakenews/analyzers/ ${LAMBDA_TASK_ROOT}/analyzers/
+# Copy features_enhanced module for proper feature extraction
+COPY fakenews/src/features_enhanced.py ${LAMBDA_TASK_ROOT}/fakenews/src/features_enhanced.py
+RUN mkdir -p ${LAMBDA_TASK_ROOT}/fakenews/src && \
+    touch ${LAMBDA_TASK_ROOT}/fakenews/src/__init__.py
+# Ensure __init__.py files exist
+RUN mkdir -p ${LAMBDA_TASK_ROOT}/fakenews && \
+    mkdir -p ${LAMBDA_TASK_ROOT}/analyzers && \
+    touch ${LAMBDA_TASK_ROOT}/fakenews/__init__.py && \
+    touch ${LAMBDA_TASK_ROOT}/analyzers/__init__.py && \
+    echo "Analyzer files copied successfully"
 
 # Copy ML models to /opt/ (Lambda layer mount point)
 # Models should be in fakenews/models/ directory

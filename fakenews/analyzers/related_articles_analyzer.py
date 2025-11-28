@@ -226,37 +226,22 @@ class RelatedArticlesAnalyzer:
                     no_source_url = 0
                     unreliable_count = 0
 
-                    for entry in feed.entries[:40]:
+                    # Process fewer entries to avoid timeout (reduced from 40 to 15)
+                    for entry in feed.entries[:15]:
                         try:
                             # Use the actual article link from RSS feed
                             link = entry.link
                             print(f"      Processing entry: {entry.title[:50]}...")
                             print(f"      Original link: {link}")
 
-                            # For Google News RSS, we need to follow the redirect to get the real article URL
+                            # For Google News RSS, skip redirect following to save time
+                            # The browser will handle the redirect when the link is clicked
+                            # This saves significant time (8s per redirect * 15 = 120s saved)
                             if 'news.google.com' in link:
                                 google_redirects += 1
-                                print(f"      Following Google News redirect...")
-                                
-                                try:
-                                    # Follow the redirect to get the real article URL
-                                    # Use GET instead of HEAD for better redirect following
-                                    redirect_response = requests.get(link, allow_redirects=True, timeout=8, stream=True)
-                                    if redirect_response.url and 'news.google.com' not in redirect_response.url:
-                                        real_url = redirect_response.url
-                                        print(f"      ✅ Found real URL: {real_url}")
-                                        link = real_url
-                                    else:
-                                        print(f"      ❌ Redirect failed or still Google News")
-                                        # WORKAROUND: Use the Google News link as-is for now
-                                        # This allows the system to work even if redirects fail
-                                        print(f"      🔄 Using Google News link as fallback: {link}")
-                                        # Don't continue - process the Google News link
-                                except Exception as e:
-                                    print(f"      ❌ Redirect error: {e}")
-                                    # WORKAROUND: Use the Google News link as-is for now
-                                    print(f"      🔄 Using Google News link as fallback: {link}")
-                                    # Don't continue - process the Google News link
+                                # Reduce log verbosity - only log summary at end
+                                # Keep the Google News link - browser will redirect
+                                # No need to follow redirects here - saves ~120 seconds
 
                             # Now process with real URL
                             # Validate URL points to an article, not homepage

@@ -130,6 +130,17 @@ class CredibilityAnalyzer:
         except:
             return url.lower().replace('www.', '')
     
+    def _get_base_domain(self, domain: str) -> str:
+        """
+        Extract base domain from subdomain.
+        Example: edition.cnn.com -> cnn.com
+        """
+        parts = domain.split('.')
+        if len(parts) >= 2:
+            # Take last two parts (domain.tld)
+            return '.'.join(parts[-2:])
+        return domain
+    
     def _score_domain_age(self, domain: str) -> float:
         """
         Score domain age with WHOIS verification (0-100)
@@ -201,6 +212,14 @@ class CredibilityAnalyzer:
         Score URL structure quality (0-100)
         From team member's implementation
         """
+        # Check if domain (or base domain) is in reliable sources first
+        base_domain = self._get_base_domain(domain)
+        if base_domain in self.reliable_sources:
+            return 85  # Reliable sources get high URL structure score
+        
+        if base_domain in self.problematic_sources:
+            return 30  # Problematic sources get low score
+        
         score = 50  # Base score
         
         # Check TLD
@@ -245,20 +264,23 @@ class CredibilityAnalyzer:
         Score site structure quality (0-100)
         From team member's implementation
         """
+        # Check base domain (handles subdomains like edition.cnn.com)
+        base_domain = self._get_base_domain(domain)
+        
+        if base_domain in self.reliable_sources:
+            return 85  # Reliable sources get high site structure score
+        elif base_domain in self.problematic_sources:
+            return 25  # Problematic sources get low score
+        
         score = 50
         
-        if domain in self.reliable_sources:
-            score = 85
-        elif domain in self.problematic_sources:
-            score = 25
-        else:
-            # Estimate based on domain characteristics
-            if any(word in domain for word in ['news', 'times', 'post', 'herald']):
-                score += 15
-            if len(domain) < 15:  # Short, memorable domains
-                score += 10
-            if re.search(r'\.(edu|gov|org)$', domain):
-                score += 20
+        # Estimate based on domain characteristics
+        if any(word in domain for word in ['news', 'times', 'post', 'herald']):
+            score += 15
+        if len(domain) < 15:  # Short, memorable domains
+            score += 10
+        if re.search(r'\.(edu|gov|org)$', domain):
+            score += 20
         
         return max(0, min(100, score))
     
@@ -267,16 +289,18 @@ class CredibilityAnalyzer:
         Score content format quality (0-100)
         From team member's implementation + content analysis
         """
-        score = 50
+        # Check base domain (handles subdomains like edition.cnn.com)
+        base_domain = self._get_base_domain(domain)
         
-        if domain in self.reliable_sources:
-            score = 90
-        elif domain in self.problematic_sources:
-            if "Satirical" in self.problematic_sources.get(domain, ""):
-                score = 60  # Satire is well-formatted but not news
+        if base_domain in self.reliable_sources:
+            return 90  # Reliable sources get high content format score
+        elif base_domain in self.problematic_sources:
+            if "Satirical" in self.problematic_sources.get(base_domain, ""):
+                return 60  # Satire is well-formatted but not news
             else:
-                score = 30
+                return 30
         else:
+            score = 50
             # URL pattern analysis
             if re.search(r'/\d{4}/\d{2}/\d{2}/', url):  # Date in URL
                 score += 15

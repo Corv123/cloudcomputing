@@ -1,0 +1,31 @@
+# Spark ML Pipeline Requirements
+# For training the sensationalism model using Apache Spark
+
+# Core Spark
+pyspark==3.5.0
+
+# Data Processing
+pandas>=2.0.0
+numpy>=1.24.0,<2.0.0  # NumPy < 2.0 for Lambda compatibility
+
+# Machine Learning (for export/conversion)
+scikit-learn>=1.3.0
+
+# Natural Language Processing
+nltk>=3.8
+vaderSentiment>=3.3.2
+textblob>=0.17.1
+
+# Visualization
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# AWS Integration (for S3)
+boto3>=1.28.0
+
+# Utilities
+joblib>=1.3.0  # For model serialization
+
+# Optional: For better performance
+# pyarrow>=12.0.0  # For Parquet support (included with Spark)
+

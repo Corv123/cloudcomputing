@@ -18,20 +18,22 @@ function switchTab(tabName) {
         tab.classList.remove('active');
     });
     
-    // Remove active class from all nav buttons
-    document.querySelectorAll('.nav-btn').forEach(btn => {
+    // Remove active class from all nav tabs
+    document.querySelectorAll('.nav-tab').forEach(btn => {
         btn.classList.remove('active');
     });
     
     // Show selected tab and activate button
     if (tabName === 'analyze') {
         document.getElementById('analyzeTab').classList.add('active');
-        document.querySelectorAll('.nav-btn')[0].classList.add('active');
+        document.querySelectorAll('.nav-tab')[0].classList.add('active');
     } else if (tabName === 'database') {
         document.getElementById('databaseTab').classList.add('active');
-        document.querySelectorAll('.nav-btn')[1].classList.add('active');
+        document.querySelectorAll('.nav-tab')[1].classList.add('active');
         // Load database when switching to database tab
-        loadDatabase();
+        if (typeof loadDatabase === 'function') {
+            loadDatabase();
+        }
     }
 }
 
@@ -43,6 +45,9 @@ async function loadStats() {
             document.getElementById('totalArticles').textContent = result.total;
             document.getElementById('highCredibility').textContent = result.high_credibility;
             document.getElementById('lowCredibility').textContent = result.low_credibility;
+            // Calculate medium credibility (total - high - low)
+            const medium = result.total - (result.high_credibility || 0) - (result.low_credibility || 0);
+            document.getElementById('mediumCredibility').textContent = Math.max(0, medium);
         }
     } catch (error) {
         console.error('Error loading stats:', error);
@@ -70,96 +75,112 @@ async function analyzeArticle() {
         const result = await API.analyzeArticle(url);
         console.log('=== BACKEND RESPONSE ===');
         console.log('Full result:', result);
-        console.log('Success:', result.success);
-        console.log('Cached:', result.cached);
-        console.log('Article data:', result.article);
-        console.log('Article keys:', result.article ? Object.keys(result.article) : 'No article data');
+        console.log('Result type:', typeof result);
+        console.log('Result keys:', result ? Object.keys(result) : 'result is null/undefined');
+        console.log('Success:', result?.success);
+        console.log('Cached:', result?.cached);
+        console.log('Article data:', result?.article);
+        console.log('Article keys:', result?.article ? Object.keys(result.article) : 'No article data');
 
-        if (result.success) {
-            currentArticleId = result.article.id;
+        // Handle different response formats
+        let articleData = null;
+        if (result?.success && result?.article) {
+            // Standard format: {success: true, article: {...}}
+            articleData = result.article;
+        } else if (result?.id || result?.url) {
+            // Direct article format: article data is the result itself
+            console.log('[MAIN] Response is direct article data, not wrapped');
+            articleData = result;
+        } else {
+            console.error('[MAIN] Unexpected response format:', result);
+            throw new Error('Invalid response format from API');
+        }
+
+        if (articleData) {
+            currentArticleId = articleData.id;
             
             // Display results
-            displayArticleInfo(result.article);
-            displayScores(result.article);
+            displayArticleInfo(articleData);
+            displayScores(articleData);
             
             // Render charts
             console.log('=== CHART DATA CHECK ===');
-            console.log('Chart1 data exists:', !!result.article.chart1_data);
-            console.log('Chart2 data exists:', !!result.article.chart2_data);
-            console.log('Chart3 data exists:', !!result.article.chart3_data);
-            console.log('Chart4 data exists:', !!result.article.chart4_data);
+            console.log('Chart1 data exists:', !!articleData.chart1_data);
+            console.log('Chart2 data exists:', !!articleData.chart2_data);
+            console.log('Chart3 data exists:', !!articleData.chart3_data);
+            console.log('Chart4 data exists:', !!articleData.chart4_data);
             
-            if (result.article.chart1_data) {
+            if (articleData.chart1_data) {
                 console.log('=== RENDERING CHART 1 ===');
-                console.log('Chart1 data:', result.article.chart1_data);
-                Charts.renderChart1(result.article.chart1_data);
+                console.log('Chart1 data:', articleData.chart1_data);
+                Charts.renderChart1(articleData.chart1_data);
             } else {
                 console.log('❌ Chart1 data missing');
             }
             
-            if (result.article.chart2_data) {
+            if (articleData.chart2_data) {
                 console.log('=== RENDERING CHART 2 ===');
-                console.log('Chart2 data:', result.article.chart2_data);
-                Charts.renderChart2(result.article.chart2_data);
+                console.log('Chart2 data:', articleData.chart2_data);
+                Charts.renderChart2(articleData.chart2_data);
             } else {
                 console.log('❌ Chart2 data missing');
             }
             
-            if (result.article.chart3_data) {
+            if (articleData.chart3_data) {
                 console.log('=== RENDERING CHART 3 ===');
-                console.log('Chart3 data:', result.article.chart3_data);
-                Charts.renderChart3(result.article.chart3_data);
+                console.log('Chart3 data:', articleData.chart3_data);
+                Charts.renderChart3(articleData.chart3_data);
             } else {
                 console.log('❌ Chart3 data missing');
             }
             
-            if (result.article.chart4_data) {
+            if (articleData.chart4_data) {
                 console.log('=== RENDERING CHART 4 ===');
-                console.log('Chart4 data:', result.article.chart4_data);
-                Charts.renderChart4(result.article.chart4_data);
+                console.log('Chart4 data:', articleData.chart4_data);
+                Charts.renderChart4(articleData.chart4_data);
             } else {
                 console.log('❌ Chart4 data missing');
             }
             
             // Render chart 5 (similarity map)
-            if (result.article.chart5_data) {
+            if (articleData.chart5_data) {
                 console.log('=== RENDERING CHART 5 ===');
-                console.log('Chart5 data:', result.article.chart5_data);
-                await Charts.renderChart5(currentArticleId, result.article.chart5_data);
+                console.log('Chart5 data:', articleData.chart5_data);
+                await Charts.renderChart5(currentArticleId, articleData.chart5_data);
             } else {
                 console.log('❌ Chart5 data missing');
                 await Charts.renderChart5(currentArticleId, null);
             }
             
             // Render chart 6 (related articles)
-            if (result.article.chart6_data) {
+            if (articleData.chart6_data) {
                 console.log('✅ Rendering Chart 6 (Related Articles)');
-                Charts.renderChart6(result.article.chart6_data);
+                Charts.renderChart6(articleData.chart6_data);
             } else {
                 console.log('❌ Chart6 data missing');
             }
             
             // Render enhanced credibility metrics
-            if (result.article.detailed_metrics && window.EnhancedMetrics) {
+            if (articleData.detailed_metrics && window.EnhancedMetrics) {
                 console.log('✅ Rendering Enhanced Credibility Metrics');
-                window.EnhancedMetrics.renderCredibilityCards(result.article);
+                window.EnhancedMetrics.renderCredibilityCards(articleData);
             } else {
                 console.log('❌ Enhanced metrics not available');
             }
             
             // Sensationalism score is already included in the analyze response
             // No need to call separate prediction endpoint
-            console.log('✅ Sensationalism score from analyze:', result.article.sensationalism_bias_likelihood);
+            console.log('✅ Sensationalism score from analyze:', articleData.sensationalism_bias_likelihood);
             
             // Render additional charts if data is available
             console.log('=== ADDITIONAL CHARTS CHECK ===');
-            console.log('Sensationalism data exists:', result.article.sensationalism_bias_likelihood !== undefined);
-            console.log('Word frequency data exists:', !!result.article.word_frequency_data);
-            console.log('Sentiment flow data exists:', !!result.article.sentiment_flow_data);
+            console.log('Sensationalism data exists:', articleData.sensationalism_bias_likelihood !== undefined);
+            console.log('Word frequency data exists:', !!articleData.word_frequency_data);
+            console.log('Sentiment flow data exists:', !!articleData.sentiment_flow_data);
             
-            if (result.article.sensationalism_bias_likelihood !== undefined) {
+            if (articleData.sensationalism_bias_likelihood !== undefined) {
                 console.log('=== SENSATIONALISM DATA AVAILABLE ===');
-                console.log('Sensationalism value:', result.article.sensationalism_bias_likelihood);
+                console.log('Sensationalism value:', articleData.sensationalism_bias_likelihood);
                 // Sensationalism score is now displayed in the 2x2 grid, not in overall score
             } else {
                 console.log('❌ Sensationalism data missing');

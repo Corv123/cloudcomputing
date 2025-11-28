@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fake News Detector</title>
+    <title>Fake News Detector - Trust Through Transparency</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/enhanced-metrics.css">
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
@@ -11,69 +11,77 @@
 <body>
     <!-- Main Container -->
     <div class="app-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="logo">
-                <h1>🔍 Fake News Detector</h1>
+        <!-- Top Header with Trust Badge and Quick Stats -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="header-brand">
+                    <h1 class="brand-title">🔍 Fake News Detector</h1>
+                    <p class="brand-tagline">Trust Through Transparency</p>
+                </div>
+                <div class="header-stats">
+                    <div class="header-stat">
+                        <span class="stat-label">Total Analyzed</span>
+                        <span id="totalArticles" class="stat-value">0</span>
+                    </div>
+                    <div class="header-stat">
+                        <span class="stat-label">High Credibility</span>
+                        <span id="highCredibility" class="stat-value stat-high">0</span>
+                    </div>
+                    <div class="header-stat">
+                        <span class="stat-label">Medium Credibility</span>
+                        <span id="mediumCredibility" class="stat-value stat-medium">0</span>
+                    </div>
+                    <div class="header-stat">
+                        <span class="stat-label">Low Credibility</span>
+                        <span id="lowCredibility" class="stat-value stat-low">0</span>
+                    </div>
+                </div>
             </div>
-            
-            <nav class="nav-menu">
-                <button class="nav-btn active" onclick="switchTab('analyze')">
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Navigation Tabs -->
+            <nav class="main-nav">
+                <button class="nav-tab active" onclick="switchTab('analyze')">
                     <span class="nav-icon">📊</span>
-                    <span>Analyze</span>
+                    <span>Analyze Article</span>
                 </button>
-                <button class="nav-btn" onclick="switchTab('database')">
+                <button class="nav-tab" onclick="switchTab('database')">
                     <span class="nav-icon">💾</span>
                     <span>Database</span>
                 </button>
             </nav>
-            
-            <div class="sidebar-stats">
-                <h3>Statistics</h3>
-                <div class="stat-row">
-                    <span>Total Articles:</span>
-                    <span id="totalArticles" class="stat-value">0</span>
-                </div>
-                <div class="stat-row">
-                    <span>High Credibility:</span>
-                    <span id="highCredibility" class="stat-value stat-high">0</span>
-                </div>
-                <div class="stat-row">
-                    <span>Low Credibility:</span>
-                    <span id="lowCredibility" class="stat-value stat-low">0</span>
-                </div>
-            </div>
-        </aside>
 
-        <!-- Main Content -->
-        <main class="main-content">
             <!-- Analyze Tab -->
             <div id="analyzeTab" class="tab-content active">
-                <!-- Project Name Header -->
-                <div class="section-header">
-                    <h2>Fake News Detection System</h2>
-                </div>
-
-                <!-- Input Section -->
-                <section class="input-section">
-                    <h3>Analyze News Article</h3>
-                    <div class="input-wrapper">
-                        <input 
-                            type="url" 
-                            id="articleUrl" 
-                            placeholder="Enter article URL..."
-                            class="url-input"
-                        />
-                        <button id="analyzeBtn" class="btn-analyze" onclick="analyzeArticle()">
-                            Analyze
-                        </button>
+                <!-- Hero Section: URL Input -->
+                <section class="hero-section">
+                    <div class="hero-content">
+                        <h2 class="hero-title">Verify News Credibility</h2>
+                        <p class="hero-subtitle">Paste any news article URL to get an instant, transparent credibility analysis</p>
+                        <div class="input-wrapper">
+                            <input 
+                                type="url" 
+                                id="articleUrl" 
+                                placeholder="https://example.com/article..."
+                                class="url-input"
+                            />
+                            <button id="analyzeBtn" class="btn-analyze" onclick="analyzeArticle()">
+                                <span class="btn-icon">🔍</span>
+                                <span>Analyze</span>
+                            </button>
+                        </div>
                     </div>
                 </section>
 
                 <!-- Loading Indicator -->
                 <div id="loadingIndicator" class="loading-section" style="display: none;">
-                    <div class="spinner"></div>
-                    <p>Analyzing article...</p>
+                    <div class="loading-content">
+                        <div class="spinner"></div>
+                        <p class="loading-text">Analyzing article...</p>
+                        <p class="loading-subtext">Checking credibility, language quality, and cross-referencing sources</p>
+                    </div>
                 </div>
 
                 <!-- Error Message -->
@@ -81,187 +89,222 @@
 
                 <!-- Results Container -->
                 <div id="resultsContainer" style="display: none;">
-                    <!-- Article Information -->
-                    <section class="info-section">
-                        <h3>Article Information</h3>
-                        <div class="info-grid">
-                            <div class="info-item">
-                                <label>Title:</label>
-                                <span id="infoTitle">-</span>
+                    <!-- Quick Verdict Card -->
+                    <section class="verdict-card" id="verdictCard">
+                        <div class="verdict-header">
+                            <h3 class="verdict-title">Credibility Verdict</h3>
+                            <div class="verdict-badge" id="verdictBadge">
+                                <span id="verdictText">-</span>
                             </div>
-                            <div class="info-item">
-                                <label>Source:</label>
-                                <span id="infoSource">-</span>
+                        </div>
+                        <div class="verdict-scores">
+                            <div class="verdict-score-item">
+                                <span class="score-label">Overall Score</span>
+                                <div class="score-circle-large" id="overallScoreCircle">
+                                    <span class="score-number" id="overallScoreNumber">0</span>
+                                    <span class="score-percent">%</span>
+                                </div>
                             </div>
-                            <div class="info-item">
-                                <label>URL:</label>
-                                <a id="infoUrl" href="#" target="_blank">-</a>
+                            <div class="verdict-score-item">
+                                <span class="score-label">Language Quality</span>
+                                <div class="score-value" id="languageScore">0%</div>
                             </div>
-                            <div class="info-item">
-                                <label>Published:</label>
-                                <span id="infoPublished">-</span>
+                            <div class="verdict-score-item">
+                                <span class="score-label">Source Trust</span>
+                                <div class="score-value" id="credibilityScore">0%</div>
                             </div>
-                            <div class="info-item full-width">
-                                <label>Content Preview:</label>
-                                <p id="infoContent" class="content-preview">-</p>
+                            <div class="verdict-score-item">
+                                <span class="score-label">Cross-Check</span>
+                                <div class="score-value" id="crosscheckScore">0%</div>
                             </div>
-                            <div class="info-item">
-                                <label>Category:</label>
-                                <span id="infoCategory" class="category-badge">-</span>
+                            <div class="verdict-score-item">
+                                <span class="score-label">Sensationalism</span>
+                                <div class="score-value" id="sensationalismScore">0%</div>
                             </div>
                         </div>
                     </section>
 
-                    <!-- Overall Score -->
-                    <section class="score-section">
-                        <h3>Overall Credibility Score</h3>
-                        <div class="overall-score-display">
-                            <div class="score-circle" id="overallScoreCircle">
-                                <span class="score-number" id="overallScoreNumber">0</span>
-                                <span class="score-label">%</span>
+                    <!-- Article Information (Collapsible) -->
+                    <section class="info-section collapsible">
+                        <button class="section-toggle" onclick="toggleSection('articleInfo')">
+                            <div class="section-title-wrapper">
+                                <h3>Article Information</h3>
+                                <span class="info-icon-btn" onclick="event.stopPropagation(); showInfoOverlay('articleInfo');" role="button" tabindex="0" aria-label="Info">
+                                    <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <path d="M12 16v-4M12 8h.01"/>
+                                    </svg>
+                                </span>
                             </div>
-                            <div class="score-verdict" id="scoreVerdict">-</div>
-                        </div>
-                    </section>
-
-                    <!-- Four Main Scores (2x2 Grid) -->
-                    <section class="subscores-section">
-                        <div class="score-card">
-                            <div class="score-card-header">Language Quality</div>
-                            <div class="score-card-value" id="languageScore">0%</div>
-                            <div class="score-card-desc">Grammar, style, complexity</div>
-                        </div>
-                        <div class="score-card">
-                            <div class="score-card-header">Source Credibility</div>
-                            <div class="score-card-value" id="credibilityScore">0%</div>
-                            <div class="score-card-desc">Domain reputation, transparency</div>
-                        </div>
-                        <div class="score-card">
-                            <div class="score-card-header">Cross-Check Score</div>
-                            <div class="score-card-value" id="crosscheckScore">0%</div>
-                            <div class="score-card-desc">Similarity to verified articles</div>
-                        </div>
-                        <div class="score-card">
-                            <div class="score-card-header">Sensationalism Score</div>
-                            <div class="score-card-value" id="sensationalismScore">0%</div>
-                            <div class="score-card-desc">Bias and sensational language</div>
-                        </div>
-                    </section>
-
-                    <!-- Charts Grid (6 Charts) -->
-                    <section class="charts-section">
-                        <h3>Detailed Analysis</h3>
-                        
-                        <!-- Enhanced Credibility Indicator Cards -->
-                        <div class="enhanced-cards-section">
-                            <h4>Credibility Indicators</h4>
-                            <div id="credibility-cards"></div>
-                        </div>
-                        
-                        <!-- Row 1: Charts 1 & 2 -->
-                        <div class="charts-row">
-                            <div class="chart-container">
-                                <h4>Chart 1: Language Quality Metrics</h4>
-                                <div id="chart1" class="chart-plot"></div>
-                            </div>
-                            <div class="chart-container">
-                                <h4>Chart 2: Sentiment Distribution</h4>
-                                <div id="chart2" class="chart-plot"></div>
-                            </div>
-                        </div>
-
-                        <!-- Row 2: Chart 3 -->
-                        <div class="charts-row">
-                            <div class="chart-container chart-full">
-                                <h4>Chart 3: Credibility Radar</h4>
-                                <div id="chart3" class="chart-plot"></div>
-
-                                <!-- Detailed Metric Cards -->
-                                <div id="metricCardsContainer" class="metric-cards-container" style="display: none;">
-                                    <h5 class="metric-cards-title">Detailed Score Breakdown</h5>
-                                    <div class="metric-cards-grid">
-                                        <div class="metric-card" id="domainAgeCard">
-                                            <div class="metric-card-icon">📅</div>
-                                            <div class="metric-card-header">
-                                                <h6>Domain Age</h6>
-                                                <span class="metric-score" id="domainAgeScore">0/100</span>
-                                            </div>
-                                            <div class="metric-status" id="domainAgeStatus">-</div>
-                                            <div class="metric-progress-bar">
-                                                <div class="metric-progress-fill" id="domainAgeProgress"></div>
-                                            </div>
-                                            <p class="metric-description" id="domainAgeDesc">-</p>
-                                        </div>
-
-                                        <div class="metric-card" id="urlStructureCard">
-                                            <div class="metric-card-icon">🔗</div>
-                                            <div class="metric-card-header">
-                                                <h6>URL Structure</h6>
-                                                <span class="metric-score" id="urlStructureScore">0/100</span>
-                                            </div>
-                                            <div class="metric-status" id="urlStructureStatus">-</div>
-                                            <div class="metric-progress-bar">
-                                                <div class="metric-progress-fill" id="urlStructureProgress"></div>
-                                            </div>
-                                            <p class="metric-description" id="urlStructureDesc">-</p>
-                                        </div>
-
-                                        <div class="metric-card" id="siteStructureCard">
-                                            <div class="metric-card-icon">🏗️</div>
-                                            <div class="metric-card-header">
-                                                <h6>Site Structure</h6>
-                                                <span class="metric-score" id="siteStructureScore">0/100</span>
-                                            </div>
-                                            <div class="metric-status" id="siteStructureStatus">-</div>
-                                            <div class="metric-progress-bar">
-                                                <div class="metric-progress-fill" id="siteStructureProgress"></div>
-                                            </div>
-                                            <p class="metric-description" id="siteStructureDesc">-</p>
-                                        </div>
-
-                                        <div class="metric-card" id="contentFormatCard">
-                                            <div class="metric-card-icon">📝</div>
-                                            <div class="metric-card-header">
-                                                <h6>Content Format</h6>
-                                                <span class="metric-score" id="contentFormatScore">0/100</span>
-                                            </div>
-                                            <div class="metric-status" id="contentFormatStatus">-</div>
-                                            <div class="metric-progress-bar">
-                                                <div class="metric-progress-fill" id="contentFormatProgress"></div>
-                                            </div>
-                                            <p class="metric-description" id="contentFormatDesc">-</p>
-                                        </div>
-                                    </div>
+                            <span class="toggle-icon">▼</span>
+                        </button>
+                        <div class="section-content collapsed" id="articleInfo">
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <label>Title</label>
+                                    <span id="infoTitle">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <label>Source</label>
+                                    <span id="infoSource">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <label>Published</label>
+                                    <span id="infoPublished">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <label>Category</label>
+                                    <span id="infoCategory" class="category-badge">-</span>
+                                </div>
+                                <div class="info-item full-width">
+                                    <label>Content Preview</label>
+                                    <p id="infoContent" class="content-preview">-</p>
+                                </div>
+                                <div class="info-item full-width">
+                                    <label>URL</label>
+                                    <a id="infoUrl" href="#" target="_blank" class="article-link">View Original Article →</a>
                                 </div>
                             </div>
                         </div>
+                    </section>
 
-                        <!-- Row 3: Chart 4 -->
-                        <div class="charts-row">
-                            <div class="chart-container chart-full">
-                                <h4>Chart 4: Cross-Check Analysis</h4>
-                                <div id="chart4" class="chart-plot"></div>
+                    <!-- Credibility Breakdown (Collapsible) -->
+                    <section class="analysis-section collapsible">
+                        <button class="section-toggle" onclick="toggleSection('credibilityBreakdown')">
+                            <div class="section-title-wrapper">
+                                <h3>Credibility Breakdown</h3>
+                                <span class="info-icon-btn" onclick="event.stopPropagation(); showInfoOverlay('credibilityBreakdown');" role="button" tabindex="0" aria-label="Info">
+                                    <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <path d="M12 16v-4M12 8h.01"/>
+                                    </svg>
+                                </span>
                             </div>
+                            <span class="toggle-icon">▼</span>
+                        </button>
+                        <div class="section-content collapsed" id="credibilityBreakdown">
+                            <div id="credibility-cards" class="credibility-cards-grid"></div>
                         </div>
+                    </section>
 
-                        <!-- Row 4: Charts 5 & 6 -->
-                        <div class="charts-row">
-                            <div class="chart-container">
-                                <h4>Chart 5: Similarity Map</h4>
-                                <div id="chart5" class="chart-plot"></div>
+                    <!-- Language Analysis (Collapsible) -->
+                    <section class="analysis-section collapsible">
+                        <button class="section-toggle" onclick="toggleSection('languageAnalysis')">
+                            <div class="section-title-wrapper">
+                                <h3>Language Quality Analysis</h3>
+                                <span class="info-icon-btn" onclick="event.stopPropagation(); showInfoOverlay('languageAnalysis');" role="button" tabindex="0" aria-label="Info">
+                                    <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <path d="M12 16v-4M12 8h.01"/>
+                                    </svg>
+                                </span>
                             </div>
-                            <div class="chart-container">
-                                <h4>Chart 6: Related Articles from Reputable Sources</h4>
-                                <div id="chart6" class="chart-plot chart-placeholder">
-                                    <div class="placeholder-content">
-                                        <div class="placeholder-icon">📰</div>
-                                        <p>Related articles will appear here</p>
-                                        <small>After analyzing an article</small>
-                                    </div>
+                            <span class="toggle-icon">▼</span>
+                        </button>
+                        <div class="section-content collapsed" id="languageAnalysis">
+                            <div id="chart1" class="chart-plot chart-language"></div>
+                        </div>
+                    </section>
+
+                    <!-- Sentiment Analysis (Collapsible) -->
+                    <section class="analysis-section collapsible">
+                        <button class="section-toggle" onclick="toggleSection('sentimentAnalysis')">
+                            <div class="section-title-wrapper">
+                                <h3>Sentiment & Emotional Analysis</h3>
+                                <span class="info-icon-btn" onclick="event.stopPropagation(); showInfoOverlay('sentimentAnalysis');" role="button" tabindex="0" aria-label="Info">
+                                    <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <path d="M12 16v-4M12 8h.01"/>
+                                    </svg>
+                                </span>
+                            </div>
+                            <span class="toggle-icon">▼</span>
+                        </button>
+                        <div class="section-content collapsed" id="sentimentAnalysis">
+                            <div id="chart2" class="chart-plot chart-sentiment"></div>
+                        </div>
+                    </section>
+
+                    <!-- Credibility Radar (Collapsible) -->
+                    <section class="analysis-section collapsible">
+                        <button class="section-toggle" onclick="toggleSection('credibilityRadar')">
+                            <div class="section-title-wrapper">
+                                <h3>Credibility Radar</h3>
+                                <span class="info-icon-btn" onclick="event.stopPropagation(); showInfoOverlay('credibilityRadar');" role="button" tabindex="0" aria-label="Info">
+                                    <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <path d="M12 16v-4M12 8h.01"/>
+                                    </svg>
+                                </span>
+                            </div>
+                            <span class="toggle-icon">▼</span>
+                        </button>
+                        <div class="section-content collapsed" id="credibilityRadar">
+                            <div id="chart3" class="chart-plot chart-radar"></div>
+                        </div>
+                    </section>
+
+                    <!-- Cross-Check Analysis (Collapsible) -->
+                    <section class="analysis-section collapsible">
+                        <button class="section-toggle" onclick="toggleSection('crossCheck')">
+                            <div class="section-title-wrapper">
+                                <h3>Cross-Check Analysis - Verification Network</h3>
+                                <span class="info-icon-btn" onclick="event.stopPropagation(); showInfoOverlay('crossCheck');" role="button" tabindex="0" aria-label="Info">
+                                    <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <path d="M12 16v-4M12 8h.01"/>
+                                    </svg>
+                                </span>
+                            </div>
+                            <span class="toggle-icon">▼</span>
+                        </button>
+                        <div class="section-content collapsed" id="crossCheck">
+                            <div id="chart4" class="chart-plot chart-crosscheck"></div>
+                        </div>
+                    </section>
+
+                    <!-- Similarity Map (Collapsible) -->
+                    <section class="analysis-section collapsible">
+                        <button class="section-toggle" onclick="toggleSection('similarityMap')">
+                            <div class="section-title-wrapper">
+                                <h3>Content Originality - Similarity Map</h3>
+                                <span class="info-icon-btn" onclick="event.stopPropagation(); showInfoOverlay('similarityMap');" role="button" tabindex="0" aria-label="Info">
+                                    <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <path d="M12 16v-4M12 8h.01"/>
+                                    </svg>
+                                </span>
+                            </div>
+                            <span class="toggle-icon">▼</span>
+                        </button>
+                        <div class="section-content collapsed" id="similarityMap">
+                            <div id="chart5" class="chart-plot chart-similarity"></div>
+                        </div>
+                    </section>
+
+                    <!-- Related Articles (Collapsible) -->
+                    <section class="analysis-section collapsible">
+                        <button class="section-toggle" onclick="toggleSection('relatedArticles')">
+                            <div class="section-title-wrapper">
+                                <h3>Related Articles from Verified Sources</h3>
+                                <span class="info-icon-btn" onclick="event.stopPropagation(); showInfoOverlay('relatedArticles');" role="button" tabindex="0" aria-label="Info">
+                                    <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <path d="M12 16v-4M12 8h.01"/>
+                                    </svg>
+                                </span>
+                            </div>
+                            <span class="toggle-icon">▼</span>
+                        </button>
+                        <div class="section-content collapsed" id="relatedArticles">
+                            <div id="chart6" class="chart-plot chart-placeholder">
+                                <div class="placeholder-content">
+                                    <div class="placeholder-icon">📰</div>
+                                    <p>Related articles will appear here</p>
+                                    <small>After analyzing an article</small>
                                 </div>
                             </div>
                         </div>
-
                     </section>
                 </div>
             </div>
@@ -270,6 +313,7 @@
             <div id="databaseTab" class="tab-content">
                 <div class="section-header">
                     <h2>Article Database</h2>
+                    <p>Browse and filter all analyzed articles</p>
                 </div>
 
                 <div class="database-controls">
@@ -298,13 +342,315 @@
         </main>
     </div>
 
+    <!-- Info Overlay -->
+    <div id="infoOverlay" class="info-overlay" onclick="closeInfoOverlay(event)">
+        <div class="info-overlay-content" onclick="event.stopPropagation();">
+            <div class="info-overlay-header">
+                <h2 id="infoOverlayTitle">Information</h2>
+                <button class="info-overlay-close" onclick="closeInfoOverlay()" aria-label="Close">×</button>
+            </div>
+            <div class="info-overlay-body" id="infoOverlayBody">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="js/api.js?v=2.1"></script>
     <script src="js/tabs.js"></script>
     <script src="js/article-display.js"></script>
     <script src="js/scores-display.js"></script>
-    <script src="js/charts-display.js?v=2.4"></script>
+    <script src="js/charts-display.js?v=3.0"></script>
     <script src="js/enhanced-metrics.js"></script>
     <script src="js/main.js"></script>
+    <script>
+        // Toggle collapsible sections
+        function toggleSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (!section) return;
+            
+            // Find the toggle button within the parent section
+            const parentSection = section.closest('.collapsible');
+            const toggle = parentSection ? parentSection.querySelector('.section-toggle') : null;
+            const icon = toggle ? toggle.querySelector('.toggle-icon') : null;
+            
+            // Toggle collapsed class
+            if (section.classList.contains('collapsed')) {
+                section.classList.remove('collapsed');
+                if (icon) icon.textContent = '▲';
+                if (toggle) toggle.classList.add('active');
+            } else {
+                section.classList.add('collapsed');
+                if (icon) icon.textContent = '▼';
+                if (toggle) toggle.classList.remove('active');
+            }
+        }
+
+        // Section explanations data
+        const sectionExplanations = {
+            'articleInfo': {
+                title: 'Article Information',
+                content: `
+                    <p><strong>What It Is:</strong> This section displays basic metadata about the analyzed article, including title, source, publication date, category, and content preview.</p>
+                    <p>This information helps you quickly identify the article and understand its context before reviewing the detailed analysis.</p>
+                `
+            },
+            'credibilityBreakdown': {
+                title: 'Credibility Breakdown',
+                content: `
+                    <p><strong>What It Is:</strong> The Credibility Breakdown provides a detailed assessment of the article's source credibility based on multiple technical indicators. This section evaluates the trustworthiness of the domain and website structure.</p>
+                    <h4>What It Measures</h4>
+                    <p><strong>Domain Age (📅)</strong></p>
+                    <ul>
+                        <li><strong>Purpose:</strong> Assesses how long the domain has been registered</li>
+                        <li><strong>How It Works:</strong> Uses WHOIS data to determine domain registration date</li>
+                        <li><strong>Interpretation:</strong> High Score (80-100): Domain registered for 10+ years - established, trustworthy. Medium Score (40-79): Domain registered for 3-10 years. Low Score (0-39): Domain registered for less than 3 years</li>
+                        <li><strong>Why It Matters:</strong> Older domains typically indicate established, legitimate news sources. New domains may be created for spreading misinformation.</li>
+                    </ul>
+                    <p><strong>URL Structure (🔗)</strong></p>
+                    <ul>
+                        <li><strong>Purpose:</strong> Evaluates the professionalism and structure of the article URL</li>
+                        <li><strong>How It Works:</strong> Analyzes URL patterns, length, use of special characters, and subdomain structure</li>
+                        <li><strong>Why It Matters:</strong> Professional news sites use clean, readable URLs. Suspicious sites often use complex, obfuscated URLs.</li>
+                    </ul>
+                    <p><strong>Site Structure (🏗️)</strong></p>
+                    <ul>
+                        <li><strong>Purpose:</strong> Assesses the overall website architecture and organization</li>
+                        <li><strong>Why It Matters:</strong> Professional news sites invest in proper website structure. Low-quality sites often have poor structure.</li>
+                    </ul>
+                    <p><strong>Content Format (📝)</strong></p>
+                    <ul>
+                        <li><strong>Purpose:</strong> Evaluates the formatting and presentation of the article content</li>
+                        <li><strong>Why It Matters:</strong> Professional journalism follows formatting standards. Poor formatting may indicate low-quality or hastily created content.</li>
+                    </ul>
+                    <h4>How to Use This Information</h4>
+                    <ul>
+                        <li><strong>High Scores Across All Metrics:</strong> Indicates a well-established, professional news source</li>
+                        <li><strong>Mixed Scores:</strong> Some aspects are good, but others need attention</li>
+                        <li><strong>Low Scores:</strong> Suggests the source may not be reliable or professional</li>
+                    </ul>
+                `
+            },
+            'languageAnalysis': {
+                title: 'Language Quality Analysis',
+                content: `
+                    <p><strong>What It Is:</strong> Language Quality Analysis evaluates the writing quality, grammar, and linguistic sophistication of the article. This helps identify well-written, professional journalism versus poorly written or automated content.</p>
+                    <h4>What It Measures</h4>
+                    <p><strong>Capitalization</strong></p>
+                    <ul>
+                        <li><strong>Purpose:</strong> Checks proper use of capitalization in sentences and headings</li>
+                        <li><strong>Why It Matters:</strong> Professional writing follows capitalization rules. Excessive caps or improper usage may indicate sensationalism or unprofessional content.</li>
+                    </ul>
+                    <p><strong>Punctuation</strong></p>
+                    <ul>
+                        <li><strong>Purpose:</strong> Evaluates proper punctuation usage</li>
+                        <li><strong>Why It Matters:</strong> Professional journalism uses punctuation appropriately. Excessive exclamation marks may indicate sensationalism.</li>
+                    </ul>
+                    <p><strong>Complexity</strong></p>
+                    <ul>
+                        <li><strong>Purpose:</strong> Assesses word complexity and vocabulary level</li>
+                        <li><strong>Why It Matters:</strong> Professional journalism uses appropriate vocabulary - not too simple, not overly complex.</li>
+                    </ul>
+                    <p><strong>Grammar</strong></p>
+                    <ul>
+                        <li><strong>Purpose:</strong> Evaluates basic grammar and writing structure</li>
+                        <li><strong>Why It Matters:</strong> Professional journalism maintains high grammar standards. Poor grammar may indicate unprofessional or automated content.</li>
+                    </ul>
+                    <h4>How to Use This Information</h4>
+                    <ul>
+                        <li><strong>High Scores:</strong> Indicates professional, well-edited journalism</li>
+                        <li><strong>Low Scores:</strong> May indicate unprofessional writing, automated content, or poor editorial standards</li>
+                        <li><strong>Use in Context:</strong> Combine with other metrics - even good writing can be misleading if the source is unreliable</li>
+                    </ul>
+                `
+            },
+            'sentimentAnalysis': {
+                title: 'Sentiment & Emotional Analysis',
+                content: `
+                    <p><strong>What It Is:</strong> Sentiment and Emotional Analysis examines the emotional tone and sentiment distribution throughout the article. This helps identify emotional manipulation, bias, or sensationalism.</p>
+                    <h4>What It Measures</h4>
+                    <p><strong>Positive Sentiment</strong></p>
+                    <ul>
+                        <li><strong>Purpose:</strong> Measures the proportion of positive emotional language</li>
+                        <li><strong>How It Works:</strong> Uses VADER (Valence Aware Dictionary and sEntiment Reasoner) to identify positive words and phrases</li>
+                        <li><strong>Why It Matters:</strong> Excessive positive sentiment may indicate promotional content or overly optimistic reporting</li>
+                    </ul>
+                    <p><strong>Negative Sentiment</strong></p>
+                    <ul>
+                        <li><strong>Purpose:</strong> Measures the proportion of negative emotional language</li>
+                        <li><strong>Why It Matters:</strong> Excessive negative sentiment may indicate fear-mongering, sensationalism, or biased reporting</li>
+                    </ul>
+                    <p><strong>Neutral Sentiment</strong></p>
+                    <ul>
+                        <li><strong>Purpose:</strong> Measures the proportion of neutral, factual language</li>
+                        <li><strong>Why It Matters:</strong> Professional journalism typically maintains a neutral, factual tone. High emotional content may indicate bias or manipulation</li>
+                    </ul>
+                    <p><strong>Sentiment Timeline</strong></p>
+                    <ul>
+                        <li><strong>Purpose:</strong> Shows how sentiment changes throughout the article</li>
+                        <li><strong>Why It Matters:</strong> Sudden emotional shifts may indicate attempts to manipulate reader emotions</li>
+                    </ul>
+                    <h4>How to Use This Information</h4>
+                    <ul>
+                        <li><strong>Balanced Sentiment:</strong> Professional journalism typically shows balanced or neutral sentiment</li>
+                        <li><strong>Extreme Sentiment:</strong> Very high positive or negative sentiment may indicate bias or manipulation</li>
+                        <li><strong>Use in Context:</strong> Emotional content isn't always bad, but extreme emotional language combined with low credibility scores is concerning</li>
+                    </ul>
+                `
+            },
+            'credibilityRadar': {
+                title: 'Credibility Radar',
+                content: `
+                    <p><strong>What It Is:</strong> The Credibility Radar provides a visual breakdown of four key credibility dimensions. This radar chart shows strengths and weaknesses across different trust indicators.</p>
+                    <h4>What It Measures</h4>
+                    <p><strong>Domain Authority</strong></p>
+                    <ul>
+                        <li><strong>Purpose:</strong> Evaluates the domain's reputation and authority</li>
+                        <li><strong>Why It Matters:</strong> Established domains from reputable sources are more trustworthy</li>
+                    </ul>
+                    <p><strong>Content Quality</strong></p>
+                    <ul>
+                        <li><strong>Purpose:</strong> Assesses the quality and professionalism of the content</li>
+                        <li><strong>Why It Matters:</strong> Professional journalism maintains high content quality standards</li>
+                    </ul>
+                    <p><strong>Source Verification</strong></p>
+                    <ul>
+                        <li><strong>Purpose:</strong> Checks if the source can be verified and is known</li>
+                        <li><strong>Why It Matters:</strong> Verified sources are more trustworthy than unknown sources</li>
+                    </ul>
+                    <p><strong>Technical Indicators</strong></p>
+                    <ul>
+                        <li><strong>Purpose:</strong> Evaluates technical aspects like URL structure, site structure, and metadata</li>
+                        <li><strong>Why It Matters:</strong> Professional sites invest in proper technical implementation</li>
+                    </ul>
+                    <h4>How to Use This Information</h4>
+                    <ul>
+                        <li><strong>Balanced Radar:</strong> All dimensions similar - consistent credibility profile</li>
+                        <li><strong>Spiky Radar:</strong> Some dimensions high, others low - mixed credibility</li>
+                        <li><strong>Large Radar:</strong> All dimensions high - high overall credibility</li>
+                    </ul>
+                `
+            },
+            'crossCheck': {
+                title: 'Cross-Check Analysis - Verification Network',
+                content: `
+                    <p><strong>What It Is:</strong> Cross-Check Analysis verifies the article by comparing it against other articles from verified sources. This network visualization shows how well the article's claims are corroborated by other sources.</p>
+                    <h4>What It Measures</h4>
+                    <p><strong>Similarity Score</strong></p>
+                    <ul>
+                        <li><strong>Purpose:</strong> Measures how similar the article is to other articles on the same topic</li>
+                        <li><strong>How It Works:</strong> Uses TF-IDF (Term Frequency-Inverse Document Frequency) and vector embeddings to calculate content similarity</li>
+                        <li><strong>Interpretation:</strong> High Similarity (0.7-1.0): Strong corroboration. Medium Similarity (0.4-0.7): Some corroboration. Low Similarity (0.0-0.4): Limited corroboration</li>
+                        <li><strong>Why It Matters:</strong> Articles with high similarity to credible sources are more trustworthy. Low similarity may indicate unique claims that need verification.</li>
+                    </ul>
+                    <p><strong>Source Credibility</strong></p>
+                    <ul>
+                        <li><strong>Purpose:</strong> Evaluates the credibility of sources that corroborate the article</li>
+                        <li><strong>Why It Matters:</strong> Corroboration from high-credibility sources is more valuable than from low-credibility sources</li>
+                    </ul>
+                    <p><strong>Network Visualization</strong></p>
+                    <ul>
+                        <li><strong>Purpose:</strong> Shows the relationship between the article and other sources</li>
+                        <li><strong>Why It Matters:</strong> A network of similar articles from credible sources indicates the story is widely reported and verified</li>
+                    </ul>
+                    <h4>How to Use This Information</h4>
+                    <ul>
+                        <li><strong>Many High-Credibility Points:</strong> Strong verification from reputable sources - high trust</li>
+                        <li><strong>Few Points:</strong> Limited verification - needs more investigation</li>
+                        <li><strong>Points Clustered:</strong> Strong consensus among sources</li>
+                    </ul>
+                `
+            },
+            'similarityMap': {
+                title: 'Content Originality - Similarity Map',
+                content: `
+                    <p><strong>What It Is:</strong> The Content Originality Map shows how original the article's content is compared to other articles in the database. This helps identify plagiarism, content reuse, or original reporting.</p>
+                    <h4>What It Measures</h4>
+                    <p><strong>Similarity Score</strong></p>
+                    <ul>
+                        <li><strong>Purpose:</strong> Measures how similar the article is to other articles in the database</li>
+                        <li><strong>How It Works:</strong> Uses vector embeddings and cosine similarity to compare article content</li>
+                        <li><strong>Interpretation:</strong> High Similarity (0.7-1.0): May be republished or plagiarized. Low Similarity (0.0-0.4): Unique content - original reporting</li>
+                        <li><strong>Why It Matters:</strong> Original content is more valuable. High similarity may indicate content reuse or lack of originality.</li>
+                    </ul>
+                    <p><strong>Heatmap Visualization</strong></p>
+                    <ul>
+                        <li><strong>Purpose:</strong> Visual representation of similarity distribution</li>
+                        <li><strong>Why It Matters:</strong> Visual representation makes it easy to spot patterns and outliers</li>
+                    </ul>
+                    <h4>How to Use This Information</h4>
+                    <ul>
+                        <li><strong>High Similarity:</strong> Article content is very similar to others - may be republished content</li>
+                        <li><strong>Low Similarity:</strong> Article has unique content - original reporting</li>
+                        <li><strong>Use in Context:</strong> Some similarity is normal for news articles covering the same events, but very high similarity may indicate plagiarism</li>
+                    </ul>
+                `
+            },
+            'relatedArticles': {
+                title: 'Related Articles from Verified Sources',
+                content: `
+                    <p><strong>What It Is:</strong> Related Articles from Verified Sources provides a curated list of articles from reputable news organizations that cover similar topics. This helps you verify claims and get additional context.</p>
+                    <h4>What It Measures</h4>
+                    <p><strong>Relevance Classification</strong></p>
+                    <ul>
+                        <li><strong>Purpose:</strong> Categorizes how relevant each related article is to the analyzed article</li>
+                        <li><strong>Classifications:</strong> Relevant: High similarity and direct relevance. Moderate: Some similarity. Weak: Tangentially related</li>
+                        <li><strong>Why It Matters:</strong> Relevant articles provide direct verification. Weak articles provide only general context.</li>
+                    </ul>
+                    <p><strong>Source Verification</strong></p>
+                    <ul>
+                        <li><strong>Purpose:</strong> Ensures articles are from verified, reputable sources</li>
+                        <li><strong>Why It Matters:</strong> Verification from reputable sources is more trustworthy than from unknown sources</li>
+                    </ul>
+                    <h4>How to Use This Information</h4>
+                    <ul>
+                        <li><strong>Read Relevant Articles:</strong> These directly verify or dispute the claims in the analyzed article</li>
+                        <li><strong>Check Moderate Articles:</strong> These provide context and related information</li>
+                        <li><strong>Compare Sources:</strong> See how different reputable sources report on the same topic</li>
+                        <li><strong>Verify Claims:</strong> Use related articles to fact-check specific claims</li>
+                    </ul>
+                `
+            }
+        };
+
+        // Show info overlay
+        function showInfoOverlay(sectionId) {
+            const overlay = document.getElementById('infoOverlay');
+            const titleEl = document.getElementById('infoOverlayTitle');
+            const bodyEl = document.getElementById('infoOverlayBody');
+            
+            if (!overlay || !titleEl || !bodyEl) return;
+            
+            const explanation = sectionExplanations[sectionId];
+            if (!explanation) {
+                console.warn('No explanation found for section:', sectionId);
+                return;
+            }
+            
+            titleEl.textContent = explanation.title;
+            bodyEl.innerHTML = explanation.content;
+            
+            overlay.classList.add('show');
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+
+        // Close info overlay
+        function closeInfoOverlay(event) {
+            if (event && event.target !== event.currentTarget) return;
+            
+            const overlay = document.getElementById('infoOverlay');
+            if (overlay) {
+                overlay.classList.remove('show');
+                document.body.style.overflow = ''; // Restore scrolling
+            }
+        }
+
+        // Close overlay on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeInfoOverlay();
+            }
+        });
+    </script>
 </body>
 </html>

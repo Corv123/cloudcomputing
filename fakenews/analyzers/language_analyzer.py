@@ -4,6 +4,26 @@
 import re
 from typing import Dict, Any
 
+# Try to import VADER for proper sentiment analysis
+VADER_AVAILABLE = False
+_vader_analyzer = None
+try:
+    from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+    _vader_analyzer = SentimentIntensityAnalyzer()
+    # Test that it actually works
+    test_scores = _vader_analyzer.polarity_scores("This is a test.")
+    if test_scores and 'pos' in test_scores:
+        VADER_AVAILABLE = True
+        print("[OK] VADER sentiment analyzer initialized and tested successfully")
+    else:
+        print("[WARN] VADER initialized but test failed")
+except ImportError as e:
+    print(f"[WARN] VADER import failed: {e}")
+except Exception as e:
+    print(f"[WARN] VADER initialization failed: {e}")
+    import traceback
+    traceback.print_exc()
+
 class LanguageAnalyzer:
     """
     Analyzes article language quality based on:
@@ -52,7 +72,9 @@ class LanguageAnalyzer:
         }
         
         # Chart 2 Data: Sentiment/Tone distribution (simplified)
+        print(f"[DEBUG] LanguageAnalyzer: Analyzing tone for text length: {len(text)}")
         chart2_data = self._analyze_tone(text)
+        print(f"[DEBUG] LanguageAnalyzer: chart2_data result: {chart2_data}")
         
         return {
             "score": round(language_score, 3),
@@ -131,32 +153,89 @@ class LanguageAnalyzer:
         return max(0, 1 - error_ratio * 10)
     
     def _analyze_tone(self, text: str) -> Dict[str, Any]:
-        """Analyze tone distribution for Chart 2 (simplified)"""
+        """
+        Analyze sentiment distribution for Chart 2 using VADER sentiment analysis.
+        Returns format: {labels: ['Positive', 'Negative', 'Neutral'], values: [0.4, 0.3, 0.3]}
+        """
+        # Check if text is empty or too short
+        if not text or len(text.strip()) < 3:
+            print(f"[WARN] Text too short for sentiment analysis: length={len(text) if text else 0}")
+            return {
+                "labels": ["Positive", "Negative", "Neutral"],
+                "values": [0.33, 0.33, 0.34]
+            }
+        
+        # Use VADER if available (proper sentiment analysis)
+        print(f"[DEBUG] VADER_AVAILABLE: {VADER_AVAILABLE}, _vader_analyzer: {_vader_analyzer is not None}")
+        if VADER_AVAILABLE and _vader_analyzer:
+            try:
+                # Analyze sentiment using VADER
+                sentiment_scores = _vader_analyzer.polarity_scores(text)
+                
+                print(f"[DEBUG] VADER sentiment scores: pos={sentiment_scores['pos']:.4f}, neg={sentiment_scores['neg']:.4f}, neu={sentiment_scores['neu']:.4f}, compound={sentiment_scores.get('compound', 0):.4f}")
+                
+                # VADER returns proportions that already sum to 1.0
+                # Format: {labels: ['Positive', 'Negative', 'Neutral'], values: [pos, neg, neu]}
+                pos_val = round(sentiment_scores['pos'], 2)
+                neg_val = round(sentiment_scores['neg'], 2)
+                neu_val = round(sentiment_scores['neu'], 2)
+                
+                # Ensure values sum to 1.0 (handle floating point precision)
+                total = pos_val + neg_val + neu_val
+                if total > 0:
+                    # Normalize to ensure exact sum of 1.0
+                    pos_val = round(pos_val / total, 2)
+                    neg_val = round(neg_val / total, 2)
+                    neu_val = round(1.0 - pos_val - neg_val, 2)  # Ensure sum is exactly 1.0
+                else:
+                    # Fallback if all zeros
+                    print("[WARN] All sentiment scores are zero, using fallback")
+                    pos_val, neg_val, neu_val = 0.33, 0.33, 0.34
+                
+                result = {
+                    "labels": ["Positive", "Negative", "Neutral"],
+                    "values": [pos_val, neg_val, neu_val]
+                }
+                print(f"[DEBUG] Final sentiment result: {result}")
+                return result
+            except Exception as e:
+                print(f"[WARN] VADER sentiment analysis failed: {e}, using fallback")
+                import traceback
+                traceback.print_exc()
+        
+        # Fallback: Simple keyword-based analysis (less accurate)
         text_lower = text.lower()
+        words = text.split()
         
-        # Simple keyword-based tone analysis
-        neutral_words = len(text.split())
-        sensational = len(re.findall(
-            r'\b(shocking|unbelievable|amazing|incredible|urgent|breaking)\b',
+        # Count sentiment keywords
+        positive_keywords = len(re.findall(
+            r'\b(excellent|great|wonderful|success|achievement|good|amazing|love|best|perfect)\b',
             text_lower
         ))
-        negative = len(re.findall(
-            r'\b(terrible|awful|disaster|crisis|danger|threat)\b',
-            text_lower
-        ))
-        positive = len(re.findall(
-            r'\b(excellent|great|wonderful|success|achievement)\b',
+        negative_keywords = len(re.findall(
+            r'\b(terrible|awful|disaster|crisis|danger|threat|bad|hate|worst|horrible)\b',
             text_lower
         ))
         
-        total = sensational + negative + positive + max(neutral_words - 100, 0) / 10
+        # Calculate proportions
+        total_words = len(words)
+        if total_words > 0:
+            pos_ratio = min(positive_keywords / total_words * 10, 0.5)  # Cap at 50%
+            neg_ratio = min(negative_keywords / total_words * 10, 0.5)  # Cap at 50%
+            neu_ratio = max(1.0 - pos_ratio - neg_ratio, 0.0)  # Rest is neutral
+            
+            # Normalize to sum to 1.0
+            total = pos_ratio + neg_ratio + neu_ratio
+            if total > 0:
+                pos_val = round(pos_ratio / total, 2)
+                neg_val = round(neg_ratio / total, 2)
+                neu_val = round(1.0 - pos_val - neg_val, 2)
+            else:
+                pos_val, neg_val, neu_val = 0.33, 0.33, 0.34
+        else:
+            pos_val, neg_val, neu_val = 0.33, 0.33, 0.34
         
         return {
-            "labels": ["Neutral", "Sensational", "Negative", "Positive"],
-            "values": [
-                round(max(neutral_words - sensational - negative - positive, 0) / total * 100, 1) if total > 0 else 70,
-                round(sensational / total * 100, 1) if total > 0 else 10,
-                round(negative / total * 100, 1) if total > 0 else 10,
-                round(positive / total * 100, 1) if total > 0 else 10
-            ]
+            "labels": ["Positive", "Negative", "Neutral"],
+            "values": [pos_val, neg_val, neu_val]
         }

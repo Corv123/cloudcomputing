@@ -1,0 +1,8 @@
+{
+  "coefficients_shape": [
+    50028
+  ],
+  "intercept": -0.40445001082374465,
+  "num_features": 50028,
+  "note": "This is Spark LinearSVC model. Full conversion to scikit-learn requires: 1. Converting HashingTF to TfidfVectorizer (vocabulary mapping) 2. Converting Spark StandardScaler to scikit-learn StandardScaler 3. Recreating the model with scikit-learn LinearSVC"
+}

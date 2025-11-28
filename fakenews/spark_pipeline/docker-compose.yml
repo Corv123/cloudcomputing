@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  spark-pipeline:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: fakenews-spark-pipeline:latest
+    container_name: spark-pipeline
+    volumes:
+      # Mount datasets directory
+      - ../datasets:/workspace/datasets:ro
+      # Mount output directory (for results)
+      - ./output:/workspace/output
+      # Mount code (for development)
+      - .:/workspace/spark_pipeline
+    environment:
+      - SPARK_DRIVER_MEMORY=4g
+      - SPARK_EXECUTOR_MEMORY=4g
+      - PYTHONPATH=/workspace
+    command: bash -c "cd /workspace && python3 spark_pipeline/main.py --datasets_dir datasets/ --output_dir output/"
+    networks:
+      - spark-network
+
+networks:
+  spark-network:
+    driver: bridge
+

@@ -1,0 +1,22 @@
+# Alternative Dockerfile using bitnami/spark (more reliable)
+# If apache/spark-py doesn't work, use this instead
+
+FROM bitnami/spark:3.5
+
+# Set working directory
+WORKDIR /workspace
+
+# Install Python dependencies
+COPY requirements.txt /workspace/
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy pipeline code
+COPY . /workspace/spark_pipeline/
+
+# Set Python path
+ENV PYTHONPATH=/workspace:$PYTHONPATH
+
+# Default command
+CMD ["bash"]
+
+

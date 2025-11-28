@@ -73,23 +73,20 @@ def analyze_dataset_structure(datasets_dir: str) -> Dict:
         except Exception as e:
             analysis["TrueFalse"] = {"error": str(e)}
     
-    # Analyze Politifact.xlsx
-    pf_path = os.path.join(datasets_dir, "Politifact.xlsx")
-    if os.path.exists(pf_path):
+    # Analyze WELFake_Dataset.csv
+    wel_path = os.path.join(datasets_dir, "WELFake_Dataset.csv")
+    if os.path.exists(wel_path):
         try:
-            excel_file = pd.ExcelFile(pf_path)
-            analysis["Politifact"] = {"sheets": excel_file.sheet_names}
-            
-            for sheet_name in excel_file.sheet_names:
-                df_pf = pd.read_excel(pf_path, sheet_name=sheet_name)
-                analysis["Politifact"][sheet_name] = {
-                    "shape": df_pf.shape,
-                    "columns": list(df_pf.columns),
-                    "sample_data": {col: str(df_pf[col].iloc[0])[:80] for col in df_pf.columns[:3]},
-                    "dtypes": df_pf.dtypes.to_dict()
-                }
+            df_wel = pd.read_csv(wel_path, encoding='latin-1', nrows=100)  # Sample for analysis
+            analysis["WELFake"] = {
+                "shape": df_wel.shape,
+                "columns": list(df_wel.columns),
+                "sample_data": {col: str(df_wel[col].iloc[0])[:80] if len(df_wel) > 0 else "" for col in df_wel.columns[:3]},
+                "dtypes": df_wel.dtypes.to_dict(),
+                "label_values": df_wel["label"].unique().tolist() if "label" in df_wel.columns else []
+            }
         except Exception as e:
-            analysis["Politifact"] = {"error": str(e)}
+            analysis["WELFake"] = {"error": str(e)}
     
     return analysis
 
@@ -233,53 +230,60 @@ def read_all_datasets(datasets_dir: str) -> pd.DataFrame:
             import traceback
             traceback.print_exc()
     
-    # Add Politifact.xlsx
-    pf_path = os.path.join(datasets_dir, "Politifact.xlsx")
-    if os.path.exists(pf_path):
+    # Add WELFake_Dataset.csv
+    wel_path = os.path.join(datasets_dir, "WELFake_Dataset.csv")
+    if os.path.exists(wel_path):
         try:
-            excel_file = pd.ExcelFile(pf_path)
-            print(f"  Politifact sheets: {excel_file.sheet_names}")
+            print(f"  Loading WELFake_Dataset.csv...")
+            # Try UTF-8 first, then fallback to latin-1
+            try:
+                df_wel = pd.read_csv(wel_path, encoding='utf-8')
+            except UnicodeDecodeError:
+                df_wel = pd.read_csv(wel_path, encoding='latin-1')
             
-            for sheet_name in excel_file.sheet_names:
-                df_pf = pd.read_excel(pf_path, sheet_name=sheet_name)
-                print(f"  Sheet {sheet_name} columns: {list(df_pf.columns)}")
+            # Check for required columns
+            if "title" not in df_wel.columns or "text" not in df_wel.columns or "label" not in df_wel.columns:
+                print(f"    Warning: WELFake_Dataset.csv missing required columns. Found: {list(df_wel.columns)}")
+            else:
+                # Extract title and text columns
+                df_wel_processed = df_wel[["title", "text", "label"]].copy()
                 
-                # Try to find text and rating columns
-                text_col = None
-                rating_col = None
+                # Create text_full from title + text
+                df_wel_processed["text_full"] = (
+                    df_wel_processed["title"].fillna("") + "\n\n" + 
+                    df_wel_processed["text"].fillna("")
+                )
                 
-                for col in ["text", "content", "statement", "claim", "article"]:
-                    if col in df_pf.columns:
-                        text_col = col
-                        break
+                # Map label column: "true"/"TRUE" → 0 (real), "false"/"FALSE" → 1 (fake)
+                # Handle both string and boolean types, case-insensitive
+                def map_label(value):
+                    if pd.isna(value):
+                        return None
+                    # Convert to string and lowercase for comparison
+                    str_value = str(value).strip().lower()
+                    if str_value in ['true', '1', '1.0', 1]:
+                        return 0  # Real content
+                    elif str_value in ['false', '0', '0.0', 0]:
+                        return 1  # Fake content
+                    else:
+                        return None  # Unknown value
                 
-                for col in ["rating", "verdict", "truth", "label", "class"]:
-                    if col in df_pf.columns:
-                        rating_col = col
-                        break
+                df_wel_processed["label"] = df_wel_processed["label"].apply(map_label)
                 
-                if text_col and rating_col:
-                    df_pf_processed = df_pf[[text_col, rating_col]].copy()
-                    df_pf_processed["title"] = ""
-                    df_pf_processed["text"] = df_pf_processed[text_col]
-                    df_pf_processed["text_full"] = df_pf_processed[text_col]
-                    
-                    # Map PolitiFact ratings to binary (0=truthful, 1=false)
-                    rating_map = {
-                        "True": 0, "Mostly True": 0, "Half True": 0.5,
-                        "Mostly False": 1, "False": 1, "Pants on Fire": 1
-                    }
-                    df_pf_processed["label"] = df_pf_processed[rating_col].map(rating_map)
-                    df_pf_processed["source"] = f"politifact_{sheet_name}"
-                    
-                    # Remove rows with unmapped ratings
-                    df_pf_processed = df_pf_processed.dropna(subset=["label"])
-                    frames.append(df_pf_processed)
-                    print(f"  Loaded {sheet_name}: {len(df_pf_processed)} samples")
-                else:
-                    print(f"  Sheet {sheet_name} columns not recognized")
+                # Remove rows with unmapped labels
+                df_wel_processed = df_wel_processed.dropna(subset=["label"])
+                
+                # Convert label to int
+                df_wel_processed["label"] = df_wel_processed["label"].astype(int)
+                df_wel_processed["source"] = "welfake"
+                
+                frames.append(df_wel_processed)
+                print(f"  Loaded WELFake_Dataset.csv: {len(df_wel_processed)} samples")
+                print(f"    Label distribution: {df_wel_processed['label'].value_counts().to_dict()}")
         except Exception as e:
-            print(f"  Error loading Politifact.xlsx: {e}")
+            print(f"  Error loading WELFake_Dataset.csv: {e}")
+            import traceback
+            traceback.print_exc()
     
     if not frames:
         raise FileNotFoundError("No dataset files found")

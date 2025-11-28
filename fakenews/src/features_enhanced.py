@@ -3,7 +3,7 @@ import string
 from dataclasses import dataclass
 from typing import List, Dict, Tuple
 import numpy as np
-import pandas as pd
+import nltk
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from nltk import download as nltk_download, word_tokenize
@@ -12,13 +12,38 @@ from textblob import TextBlob
 
 # Ensure required NLTK data is present
 def _ensure_nltk():
+    import os
+    # Use /tmp for Lambda (writable) or ~/nltk_data for local
+    if os.path.exists('/tmp'):
+        nltk_data_dir = '/tmp/nltk_data'
+    else:
+        nltk_data_dir = os.path.expanduser('~/nltk_data')
+    
+    try:
+        os.makedirs(nltk_data_dir, exist_ok=True)
+    except (OSError, PermissionError):
+        # If can't create, try /tmp as fallback
+        nltk_data_dir = '/tmp/nltk_data'
+        try:
+            os.makedirs(nltk_data_dir, exist_ok=True)
+        except:
+            pass  # Will use fallback methods
+    
+    # Add to NLTK data path
+    nltk.data.path.append(nltk_data_dir)
+    
     for pkg in ["punkt", "punkt_tab", "stopwords", "wordnet", "omw-1.4"]:
         try:
-            nltk_download(pkg, quiet=True)
-        except Exception:
+            nltk_download(pkg, quiet=True, download_dir=nltk_data_dir)
+        except Exception as e:
+            # Silently continue if download fails - will use fallback methods
             pass
 
-_ensure_nltk()
+try:
+    _ensure_nltk()
+except Exception:
+    # If NLTK setup fails, continue with fallback methods
+    pass
 
 _LEMMATIZER = WordNetLemmatizer()
 _STOPWORDS = set(stopwords.words("english")) if stopwords.words else set()
@@ -383,6 +408,69 @@ def get_feature_names() -> List[str]:
         # Core sensationalism indicators
         'clickbait_score', 'emotional_intensity', 'exclamation_density', 
         'caps_density', 'question_density',
+        
+        # Sentiment and bias (enhanced)
+        'sentiment_polarity', 'sentiment_subjectivity', 'sentiment_intensity', 'sentiment_balance',
+        
+        # Language patterns (enhanced)
+        'intensifier_ratio', 'tentative_ratio', 'evidence_ratio', 'professional_ratio', 'balanced_ratio',
+        
+        # Text structure
+        'avg_sentence_length', 'avg_word_length', 'text_length', 'word_count',
+        
+        # Repetition and redundancy
+        'repetition_ratio', 'unique_word_ratio',
+        
+        # Specific patterns
+        'all_caps_words', 'exclamation_count', 'question_count', 
+        'clickbait_matches', 'emotional_word_count',
+        
+        # New: Content quality indicators
+        'professional_word_count', 'balanced_word_count', 'data_references',
+    ]
+
+        
+        # Sentiment and bias (enhanced)
+        'sentiment_polarity', 'sentiment_subjectivity', 'sentiment_intensity', 'sentiment_balance',
+        
+        # Language patterns (enhanced)
+        'intensifier_ratio', 'tentative_ratio', 'evidence_ratio', 'professional_ratio', 'balanced_ratio',
+        
+        # Text structure
+        'avg_sentence_length', 'avg_word_length', 'text_length', 'word_count',
+        
+        # Repetition and redundancy
+        'repetition_ratio', 'unique_word_ratio',
+        
+        # Specific patterns
+        'all_caps_words', 'exclamation_count', 'question_count', 
+        'clickbait_matches', 'emotional_word_count',
+        
+        # New: Content quality indicators
+        'professional_word_count', 'balanced_word_count', 'data_references',
+    ]
+
+        
+        # Sentiment and bias (enhanced)
+        'sentiment_polarity', 'sentiment_subjectivity', 'sentiment_intensity', 'sentiment_balance',
+        
+        # Language patterns (enhanced)
+        'intensifier_ratio', 'tentative_ratio', 'evidence_ratio', 'professional_ratio', 'balanced_ratio',
+        
+        # Text structure
+        'avg_sentence_length', 'avg_word_length', 'text_length', 'word_count',
+        
+        # Repetition and redundancy
+        'repetition_ratio', 'unique_word_ratio',
+        
+        # Specific patterns
+        'all_caps_words', 'exclamation_count', 'question_count', 
+        'clickbait_matches', 'emotional_word_count',
+        
+        # New: Content quality indicators
+        'professional_word_count', 'balanced_word_count', 'data_references',
+    ]
+
         
         # Sentiment and bias (enhanced)
         'sentiment_polarity', 'sentiment_subjectivity', 'sentiment_intensity', 'sentiment_balance',

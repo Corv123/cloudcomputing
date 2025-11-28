@@ -29,9 +29,9 @@ SUSPICIOUS_DOMAINS = [
 ]
 
 # WHOIS Configuration
-ENABLE_WHOIS = False  # Set to True if you have WHOIS API key
+ENABLE_WHOIS = True  # ENABLED - Using real WHOIS API for domain age verification
 WHOIS_API_URL = "https://www.whoisxmlapi.com/whoisserver/WhoisService"
-WHOIS_API_KEY = ""  # Get free key from https://www.whoisxmlapi.com/
+WHOIS_API_KEY = "at_dd2pE35hc7Xxv3ok1NuRviY9lGgtn"  # Get free key from https://www.whoisxmlapi.com/
 WHOIS_TIMEOUT_SECONDS = 5
 WHOIS_CACHE_HOURS = 24
 

@@ -4,6 +4,7 @@
 
 import sqlite3
 import requests
+import os
 from datetime import datetime, timedelta
 from typing import Dict, Optional
 import config
@@ -20,7 +21,12 @@ class WhoisHelper:
     """
 
     def __init__(self):
-        self.db_name = config.DATABASE_NAME
+        # Use /tmp for Lambda (writable directory) or local path for other environments
+        db_name = getattr(config, 'DATABASE_NAME', 'articles.db')
+        if os.path.exists('/tmp'):  # Lambda environment
+            self.db_name = '/tmp/whois_cache.db'
+        else:
+            self.db_name = db_name
         self._init_cache_table()
 
     def get_domain_age(self, domain: str) -> Optional[Dict]:
