@@ -74,6 +74,11 @@
     margin-bottom: 8px;
 }
 
+/* Override score-value color specifically for credibility cards */
+.credibility-card .card-score .score-value {
+    color: #000000 !important; /* Black color for credibility card scores */
+}
+
 /* Progress Bar */
 .progress-bar {
     width: 100%;

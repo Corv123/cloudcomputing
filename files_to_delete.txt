@@ -1,0 +1,35 @@
+FILES THAT CAN BE SAFELY DELETED:
+
+=== BACKUP FILES ===
+- fakenews/static/js/api.js.backup
+
+=== OLD/UNUSED DOCKERFILES ===
+- Dockerfile.simple (appears to be an old version, main Dockerfile is used)
+- Dockerfile.layer (appears to be an old version, main Dockerfile is used)
+
+=== DUPLICATE DATA FILES ===
+- fakenews/analyzers/news_articles.csv (duplicate - scraper generates this)
+- fakenews/analyzers/scraper_tracking.json (duplicate - scraper generates this)
+- fakenews/scraper/ directory (appears to be duplicate of analyzers content)
+
+=== OLD MODEL FILES (if *_latest.joblib and *_comprehensive.joblib are being used) ===
+- fakenews/models/scaler_20251015_181956.joblib (old timestamped version)
+- fakenews/models/sensationalism_model_20251015_181956.joblib (old timestamped version)
+- fakenews/models/tfidf_vectorizer_20251015_181956.joblib (old timestamped version)
+
+=== BUILD ARTIFACTS (can be regenerated) ===
+- lambda-layer.zip (can be regenerated from lambda-layer/)
+- lambda-layer-output/ (build output directory)
+- lambda-ml-layer-minimal/ (2159 files - appears to be a build artifact)
+- fakenews/lambda-ml-layer/ (empty directory)
+
+=== PYTHON CACHE (can be regenerated) ===
+- All __pycache__/ directories (Python bytecode cache)
+- All *.pyc files (if any exist)
+
+=== POTENTIALLY OLD DATABASE ===
+- fakenews/articles.db (SQLite database - check if this is still used or if DynamoDB replaced it)
+
+=== TEMPORARY CONFIG FILES ===
+- s3-policy.json (appears to be a temporary policy file, might be in config/ already)
+
