@@ -1,0 +1,5 @@
+.venv/
+lambda-layer/
+lambda-layer-output/
+__pycache__/
+*.pyc

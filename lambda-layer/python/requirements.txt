@@ -1,9 +1,0 @@
-﻿joblib
-scikit-learn
-numpy
-scipy
-nltk
-vaderSentiment
-requests
-beautifulsoup4
-lxml
