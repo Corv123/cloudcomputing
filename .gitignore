@@ -8,3 +8,6 @@ fakenews/models/*.joblib
 lambda-layer.zip
 *.zip
 *.csv
+fakenews/models/*.joblib
+fakenews/datasets/*.csv
+*.zip
